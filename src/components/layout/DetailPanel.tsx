@@ -13,12 +13,14 @@ import type { TaskSize } from '@/types';
 
 export function DetailPanel() {
   const { selectedTaskId, selectTask, incrementDoneToday } = useAppStore();
-  const { getTaskById, getProject, getSubtasks, projects, updateTask, deleteTask, completeTask, letGoTask, addSubtask, updateSubtask, deleteSubtask } = useTaskStore();
+  const { getTaskById, getProject, getSubtasks, getTagsForTask, getAllTags, addTagToTask, removeTagFromTask, projects, updateTask, deleteTask, completeTask, letGoTask, addSubtask, updateSubtask, deleteSubtask } = useTaskStore();
   const { showToast } = useToast();
 
   const task = selectedTaskId ? getTaskById(selectedTaskId) : undefined;
   const project = task ? getProject(task.project_id) : null;
   const subtasks = task ? getSubtasks(task.id) : [];
+  const tags = task ? getTagsForTask(task.id) : [];
+  const allTags = getAllTags();
 
   const handleComplete = () => {
     if (!task) return;
@@ -57,13 +59,18 @@ export function DetailPanel() {
                 task={task}
                 project={project}
                 projects={projects}
+                tags={tags}
+                allTags={allTags}
                 onUpdateTitle={(title) => updateTask(task.id, { title })}
                 onUpdateProject={(projectId) => updateTask(task.id, { project_id: projectId })}
+                onAddTag={(name) => addTagToTask(task.id, name)}
+                onRemoveTag={(tagId) => removeTagFromTask(task.id, tagId)}
                 onClose={() => selectTask(null)}
               />
               <TaskDetailMeta
                 task={task}
                 onUpdateSize={(size: TaskSize) => updateTask(task.id, { size })}
+                onUpdateDueDate={(dueDate) => updateTask(task.id, { due_date: dueDate })}
               />
 
               {/* Waiting on block */}
@@ -91,6 +98,11 @@ export function DetailPanel() {
                 onAdd={(text) => addSubtask(task.id, text)}
                 onDelete={deleteSubtask}
                 onUpdateText={(id, text) => updateSubtask(id, { text })}
+                onReorder={(reordered) => {
+                  reordered.forEach((s, i) => {
+                    if (s.sort_order !== i) updateSubtask(s.id, { sort_order: i });
+                  });
+                }}
               />
             </div>
 

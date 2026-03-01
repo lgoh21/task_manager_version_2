@@ -8,6 +8,7 @@ import { isHeavyDay } from '@/lib/utils/tasks';
 import { isThisWeek } from '@/lib/utils/dates';
 import { TaskRow } from '@/components/tasks/TaskRow';
 import { TodayEmptyState } from '@/components/tasks/TodayEmptyState';
+import { WaitingOnModal } from '@/components/tasks/WaitingOnModal';
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -25,16 +26,23 @@ interface MenuState {
 }
 
 export default function TodayPage() {
-  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject } = useTaskStore();
-  const { activeProjectFilter, incrementDoneToday } = useAppStore();
+  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject, getTagsForTask, getAllTags } = useTaskStore();
+  const { activeProjectFilter, activeTagFilter, setActiveTagFilter, incrementDoneToday } = useAppStore();
+  const allTags = getAllTags();
 
   const allTodayTasks = getTasksByStatus('today');
-  const todayTasks = useMemo(
-    () => activeProjectFilter
-      ? allTodayTasks.filter((t) => t.project_id === activeProjectFilter)
-      : allTodayTasks,
-    [allTodayTasks, activeProjectFilter]
-  );
+  const todayTasks = useMemo(() => {
+    let filtered = allTodayTasks;
+    if (activeProjectFilter) {
+      filtered = filtered.filter((t) => t.project_id === activeProjectFilter);
+    }
+    if (activeTagFilter) {
+      filtered = filtered.filter((t) =>
+        getTagsForTask(t.id).some((tag) => tag.id === activeTagFilter)
+      );
+    }
+    return filtered;
+  }, [allTodayTasks, activeProjectFilter, activeTagFilter, getTagsForTask]);
   const inboxTasks = getTasksByStatus('inbox');
   const somedayTasks = getTasksByStatus('someday');
   const upcomingTasks = getTasksByStatus('upcoming');
@@ -44,9 +52,10 @@ export default function TodayPage() {
   );
 
   const [menu, setMenu] = useState<MenuState | null>(null);
+  const [waitingTaskId, setWaitingTaskId] = useState<string | null>(null);
 
   const heavyDay = isHeavyDay(todayTasks);
-  const isEmpty = todayTasks.length === 0 && !activeProjectFilter;
+  const isEmpty = todayTasks.length === 0 && !activeProjectFilter && !activeTagFilter;
 
   const handleAddToToday = (taskId: string) => {
     updateTask(taskId, { status: 'today', sort_order: todayTasks.length });
@@ -74,12 +83,7 @@ export default function TodayPage() {
     {
       label: 'Waiting On...',
       icon: <IconPause size={14} />,
-      onClick: () => {
-        const who = window.prompt('Who or what is blocking this task?');
-        if (who) {
-          updateTask(task.id, { status: 'waiting', waiting_on: who });
-        }
-      },
+      onClick: () => setWaitingTaskId(task.id),
     },
     {
       label: 'Move to Someday',
@@ -124,6 +128,33 @@ export default function TodayPage() {
         </div>
       </div>
 
+      {/* Tag filter pills */}
+      {allTags.length > 0 && (
+        <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+          {allTags.map((tag) => (
+            <button
+              key={tag.id}
+              onClick={() => setActiveTagFilter(activeTagFilter === tag.id ? null : tag.id)}
+              className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${
+                activeTagFilter === tag.id
+                  ? 'bg-accent text-accent-foreground'
+                  : 'bg-accent/10 text-accent hover:bg-accent/20'
+              }`}
+            >
+              #{tag.name}
+            </button>
+          ))}
+          {activeTagFilter && (
+            <button
+              onClick={() => setActiveTagFilter(null)}
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Empty state or task list */}
       {isEmpty ? (
         <TodayEmptyState
@@ -151,6 +182,7 @@ export default function TodayPage() {
                   <TaskRow
                     task={task}
                     project={getProject(task.project_id)}
+                    tags={getTagsForTask(task.id)}
                     variant="today"
                     onContextMenu={handleContextMenu}
                   />
@@ -171,6 +203,18 @@ export default function TodayPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Waiting On modal */}
+      <WaitingOnModal
+        isOpen={!!waitingTaskId}
+        onClose={() => setWaitingTaskId(null)}
+        onSubmit={(text) => {
+          if (waitingTaskId) {
+            updateTask(waitingTaskId, { status: 'waiting', waiting_on: text });
+          }
+          setWaitingTaskId(null);
+        }}
+      />
     </div>
   );
 }

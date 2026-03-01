@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { DetailPanel } from '@/components/layout/DetailPanel';
 
 // Routes where the detail panel should not appear
-const FULL_WIDTH_ROUTES = ['/notes', '/history'];
+const FULL_WIDTH_ROUTES = ['/notes', '/history', '/settings'];
 
 export function ContentArea({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

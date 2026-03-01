@@ -5,18 +5,23 @@ import { AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { IconX, IconPlus } from '@/components/ui/Icons';
 import { ProjectPicker } from '@/components/tasks/ProjectPicker';
-import type { Task, Project } from '@/types';
+import { TagInput } from '@/components/tasks/TagInput';
+import type { Task, Project, Tag } from '@/types';
 
 interface TaskDetailHeaderProps {
   task: Task;
   project: Project | null;
   projects: Project[];
+  tags: Tag[];
+  allTags: Tag[];
   onUpdateTitle: (title: string) => void;
   onUpdateProject: (projectId: string | null) => void;
+  onAddTag: (tagName: string) => void;
+  onRemoveTag: (tagId: string) => void;
   onClose: () => void;
 }
 
-export function TaskDetailHeader({ task, project, projects, onUpdateTitle, onUpdateProject, onClose }: TaskDetailHeaderProps) {
+export function TaskDetailHeader({ task, project, projects, tags, allTags, onUpdateTitle, onUpdateProject, onAddTag, onRemoveTag, onClose }: TaskDetailHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(task.title);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -92,6 +97,11 @@ export function TaskDetailHeader({ task, project, projects, onUpdateTitle, onUpd
         >
           <IconX size={16} />
         </button>
+      </div>
+
+      {/* Tags */}
+      <div className="mb-3">
+        <TagInput tags={tags} allTags={allTags} onAddTag={onAddTag} onRemoveTag={onRemoveTag} />
       </div>
 
       {/* Title */}

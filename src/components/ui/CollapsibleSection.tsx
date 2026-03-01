@@ -10,6 +10,10 @@ interface CollapsibleSectionProps {
   count: number;
   badge?: { label: string; variant: 'default' | 'accent' | 'muted' | 'success' | 'warning' };
   defaultOpen?: boolean;
+  isDragTarget?: boolean;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
   children: React.ReactNode;
 }
 
@@ -18,12 +22,23 @@ export function CollapsibleSection({
   count,
   badge,
   defaultOpen = true,
+  isDragTarget,
+  onDragOver,
+  onDrop,
+  onDragLeave,
   children,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="mt-6 first:mt-0">
+    <div
+      className={`mt-6 first:mt-0 transition-colors duration-150 rounded-lg ${
+        isDragTarget ? 'bg-accent/5 ring-2 ring-dashed ring-accent/20' : ''
+      }`}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragLeave={onDragLeave}
+    >
       {/* Section header — matches page heading style */}
       <button
         onClick={() => setIsOpen(!isOpen)}

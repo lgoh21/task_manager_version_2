@@ -76,7 +76,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="px-2 py-2 border-t border-border shrink-0">
-        <NavItem href="/settings" label="Settings" icon={IconSettings} active={false} collapsed={sidebarCollapsed} />
+        <NavItem href="/settings" label="Settings" icon={IconSettings} active={pathname === '/settings'} collapsed={sidebarCollapsed} />
       </div>
     </motion.aside>
   );

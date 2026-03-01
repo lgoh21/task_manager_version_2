@@ -10,7 +10,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import type { Task, Project, Subtask, Note } from '@/types';
+import type { Task, Project, Subtask, Note, Tag, TaskTag } from '@/types';
 import { MAX_PROJECTS } from '@/config/constants';
 
 const MOCK_PROJECTS: Project[] = [
@@ -171,6 +171,20 @@ const INITIAL_NOTES: Note[] = [
   },
 ];
 
+const INITIAL_TAGS: Tag[] = [
+  { id: 'tag1', name: 'deep-work', user_id: 'mock' },
+  { id: 'tag2', name: 'client-facing', user_id: 'mock' },
+  { id: 'tag3', name: 'quick-win', user_id: 'mock' },
+];
+
+const INITIAL_TASK_TAGS: TaskTag[] = [
+  { task_id: 't1', tag_id: 'tag1' },
+  { task_id: 't2', tag_id: 'tag2' },
+  { task_id: 't4', tag_id: 'tag1' },
+  { task_id: 't4', tag_id: 'tag3' },
+  { task_id: 't6', tag_id: 'tag3' },
+];
+
 const INITIAL_SUBTASKS: Subtask[] = [
   { id: 's1', task_id: 't2', text: 'Outline talk structure', done: true, sort_order: 0 },
   { id: 's2', task_id: 't2', text: 'Build demo environment', done: false, sort_order: 1 },
@@ -185,10 +199,16 @@ interface TaskStore {
   projects: Project[];
   subtasks: Subtask[];
   notes: Note[];
+  tags: Tag[];
+  taskTags: TaskTag[];
   getTasksByStatus: (status: Task['status']) => Task[];
   getTaskById: (id: string) => Task | undefined;
   getProject: (id: string | null) => Project | null;
   getSubtasks: (taskId: string) => Subtask[];
+  getTagsForTask: (taskId: string) => Tag[];
+  getAllTags: () => Tag[];
+  addTagToTask: (taskId: string, tagName: string) => void;
+  removeTagFromTask: (taskId: string, tagId: string) => void;
   addTask: (title: string) => Task;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -203,6 +223,7 @@ interface TaskStore {
   deleteNote: (id: string) => void;
   convertNoteToTask: (id: string) => Task;
   addProject: (name: string, colour: string) => Project | null;
+  updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'colour'>>) => void;
   archiveProject: (id: string) => void;
   unarchiveProject: (id: string) => void;
 }
@@ -214,6 +235,8 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
   const [subtasks, setSubtasks] = useState<Subtask[]>(INITIAL_SUBTASKS);
   const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
   const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const [tags, setTags] = useState<Tag[]>(INITIAL_TAGS);
+  const [taskTags, setTaskTags] = useState<TaskTag[]>(INITIAL_TASK_TAGS);
 
   const getTasksByStatus = useCallback(
     (status: Task['status']) =>
@@ -240,6 +263,34 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
         .sort((a, b) => a.sort_order - b.sort_order),
     [subtasks]
   );
+
+  const getTagsForTask = useCallback(
+    (taskId: string) => {
+      const tagIds = taskTags.filter((tt) => tt.task_id === taskId).map((tt) => tt.tag_id);
+      return tags.filter((t) => tagIds.includes(t.id));
+    },
+    [tags, taskTags]
+  );
+
+  const getAllTags = useCallback(() => tags, [tags]);
+
+  const addTagToTask = useCallback((taskId: string, tagName: string) => {
+    const normalized = tagName.trim().toLowerCase().replace(/\s+/g, '-');
+    if (!normalized) return;
+    let tag = tags.find((t) => t.name === normalized);
+    if (!tag) {
+      tag = { id: crypto.randomUUID(), name: normalized, user_id: 'mock' };
+      setTags((prev) => [...prev, tag!]);
+    }
+    const exists = taskTags.some((tt) => tt.task_id === taskId && tt.tag_id === tag!.id);
+    if (!exists) {
+      setTaskTags((prev) => [...prev, { task_id: taskId, tag_id: tag!.id }]);
+    }
+  }, [tags, taskTags]);
+
+  const removeTagFromTask = useCallback((taskId: string, tagId: string) => {
+    setTaskTags((prev) => prev.filter((tt) => !(tt.task_id === taskId && tt.tag_id === tagId)));
+  }, []);
 
   const addTask = useCallback((title: string): Task => {
     const newTask: Task = {
@@ -275,6 +326,7 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
   const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     setSubtasks((prev) => prev.filter((s) => s.task_id !== id));
+    setTaskTags((prev) => prev.filter((tt) => tt.task_id !== id));
   }, []);
 
   const completeTask = useCallback((id: string) => {
@@ -390,6 +442,12 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
     return newProject;
   }, [projects]);
 
+  const updateProject = useCallback((id: string, updates: Partial<Pick<Project, 'name' | 'colour'>>) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+    );
+  }, []);
+
   const archiveProject = useCallback((id: string) => {
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, archived: true } : p))
@@ -409,10 +467,16 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
         projects,
         subtasks,
         notes,
+        tags,
+        taskTags,
         getTasksByStatus,
         getTaskById,
         getProject,
         getSubtasks,
+        getTagsForTask,
+        getAllTags,
+        addTagToTask,
+        removeTagFromTask,
         addTask,
         updateTask,
         deleteTask,
@@ -427,6 +491,7 @@ export function TaskStoreProvider({ children }: { children: ReactNode }) {
         deleteNote,
         convertNoteToTask,
         addProject,
+        updateProject,
         archiveProject,
         unarchiveProject,
       }}

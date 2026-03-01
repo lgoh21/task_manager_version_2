@@ -4,7 +4,9 @@ import { useState, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '@/lib/hooks/useTaskStore';
 import { useAppStore } from '@/lib/hooks/useAppStore';
+import { usePlanDrag } from '@/lib/hooks/usePlanDrag';
 import { TaskRow } from '@/components/tasks/TaskRow';
+import { WaitingOnModal } from '@/components/tasks/WaitingOnModal';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
 import {
@@ -26,35 +28,52 @@ export default function PlanPage() {
   const {
     getTasksByStatus,
     getProject,
+    getSubtasks,
+    getTagsForTask,
+    getAllTags,
     updateTask,
     deleteTask,
     completeTask,
     letGoTask,
   } = useTaskStore();
-  const { activeProjectFilter } = useAppStore();
+  const { activeProjectFilter, activeTagFilter, setActiveTagFilter } = useAppStore();
+  const allTags = getAllTags();
+  const { dragTarget, pendingWaitingTaskId, clearPendingWaiting, handleDragOver, handleDragLeave, handleDrop } = usePlanDrag();
 
   const [menu, setMenu] = useState<MenuState | null>(null);
+  const [waitingTaskId, setWaitingTaskId] = useState<string | null>(null);
 
-  const byProject = useCallback(
-    (tasks: Task[]) =>
-      activeProjectFilter
-        ? tasks.filter((t) => t.project_id === activeProjectFilter)
-        : tasks,
-    [activeProjectFilter]
+  // Either the context menu or the drag-drop can trigger the waiting modal
+  const activeWaitingTaskId = waitingTaskId ?? pendingWaitingTaskId;
+
+  const filterTasks = useCallback(
+    (tasks: Task[]) => {
+      let filtered = tasks;
+      if (activeProjectFilter) {
+        filtered = filtered.filter((t) => t.project_id === activeProjectFilter);
+      }
+      if (activeTagFilter) {
+        filtered = filtered.filter((t) =>
+          getTagsForTask(t.id).some((tag) => tag.id === activeTagFilter)
+        );
+      }
+      return filtered;
+    },
+    [activeProjectFilter, activeTagFilter, getTagsForTask]
   );
 
-  const inboxTasks = useMemo(() => byProject(getTasksByStatus('inbox')), [byProject, getTasksByStatus]);
+  const inboxTasks = useMemo(() => filterTasks(getTasksByStatus('inbox')), [filterTasks, getTasksByStatus]);
   const upcomingTasks = useMemo(
     () =>
-      byProject(getTasksByStatus('upcoming')).sort((a, b) => {
+      filterTasks(getTasksByStatus('upcoming')).sort((a, b) => {
         if (!a.due_date) return 1;
         if (!b.due_date) return -1;
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
       }),
-    [byProject, getTasksByStatus]
+    [filterTasks, getTasksByStatus]
   );
-  const waitingTasks = useMemo(() => byProject(getTasksByStatus('waiting')), [byProject, getTasksByStatus]);
-  const somedayTasks = useMemo(() => byProject(getTasksByStatus('someday')), [byProject, getTasksByStatus]);
+  const waitingTasks = useMemo(() => filterTasks(getTasksByStatus('waiting')), [filterTasks, getTasksByStatus]);
+  const somedayTasks = useMemo(() => filterTasks(getTasksByStatus('someday')), [filterTasks, getTasksByStatus]);
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, task: Task) => {
@@ -65,6 +84,11 @@ export default function PlanPage() {
   );
 
   const closeMenu = useCallback(() => setMenu(null), []);
+
+  const handleRevive = useCallback(
+    (taskId: string) => updateTask(taskId, { updated_at: new Date().toISOString() }),
+    [updateTask]
+  );
 
   const getActions = (task: Task): ContextMenuAction[] => {
     const actions: ContextMenuAction[] = [];
@@ -89,12 +113,7 @@ export default function PlanPage() {
       actions.push({
         label: 'Waiting On...',
         icon: <IconPause size={14} />,
-        onClick: () => {
-          const who = window.prompt('Who or what is blocking this task?');
-          if (who) {
-            updateTask(task.id, { status: 'waiting', waiting_on: who });
-          }
-        },
+        onClick: () => setWaitingTaskId(task.id),
       });
     }
 
@@ -123,13 +142,40 @@ export default function PlanPage() {
 
   return (
     <div className="p-4">
-      {/* Header — matches Today page format */}
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Plan</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">
           Triage and organise your tasks
         </p>
       </div>
+
+      {/* Tag filter pills */}
+      {allTags.length > 0 && (
+        <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+          {allTags.map((tag) => (
+            <button
+              key={tag.id}
+              onClick={() => setActiveTagFilter(activeTagFilter === tag.id ? null : tag.id)}
+              className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${
+                activeTagFilter === tag.id
+                  ? 'bg-accent text-accent-foreground'
+                  : 'bg-accent/10 text-accent hover:bg-accent/20'
+              }`}
+            >
+              #{tag.name}
+            </button>
+          ))}
+          {activeTagFilter && (
+            <button
+              onClick={() => setActiveTagFilter(null)}
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Inbox */}
       <CollapsibleSection
@@ -140,6 +186,10 @@ export default function PlanPage() {
             ? { label: 'needs scoping', variant: 'warning' }
             : undefined
         }
+        isDragTarget={dragTarget === 'inbox'}
+        onDragOver={handleDragOver('inbox')}
+        onDrop={handleDrop('inbox', updateTask)}
+        onDragLeave={handleDragLeave('inbox')}
       >
         {inboxTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 px-4">
@@ -152,7 +202,9 @@ export default function PlanPage() {
                 key={task.id}
                 task={task}
                 project={getProject(task.project_id)}
+                tags={getTagsForTask(task.id)}
                 variant="inbox"
+                draggable
                 onContextMenu={handleContextMenu}
               />
             ))}
@@ -161,7 +213,14 @@ export default function PlanPage() {
       </CollapsibleSection>
 
       {/* Upcoming */}
-      <CollapsibleSection title="Upcoming" count={upcomingTasks.length}>
+      <CollapsibleSection
+        title="Upcoming"
+        count={upcomingTasks.length}
+        isDragTarget={dragTarget === 'upcoming'}
+        onDragOver={handleDragOver('upcoming')}
+        onDrop={handleDrop('upcoming', updateTask)}
+        onDragLeave={handleDragLeave('upcoming')}
+      >
         {upcomingTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 px-4">
             No upcoming tasks
@@ -173,7 +232,9 @@ export default function PlanPage() {
                 key={task.id}
                 task={task}
                 project={getProject(task.project_id)}
+                tags={getTagsForTask(task.id)}
                 variant="upcoming"
+                draggable
                 onContextMenu={handleContextMenu}
               />
             ))}
@@ -182,7 +243,14 @@ export default function PlanPage() {
       </CollapsibleSection>
 
       {/* Waiting On */}
-      <CollapsibleSection title="Waiting On" count={waitingTasks.length}>
+      <CollapsibleSection
+        title="Waiting On"
+        count={waitingTasks.length}
+        isDragTarget={dragTarget === 'waiting'}
+        onDragOver={handleDragOver('waiting')}
+        onDrop={handleDrop('waiting', updateTask)}
+        onDragLeave={handleDragLeave('waiting')}
+      >
         {waitingTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 px-4">
             No blocked tasks
@@ -194,7 +262,9 @@ export default function PlanPage() {
                 key={task.id}
                 task={task}
                 project={getProject(task.project_id)}
+                tags={getTagsForTask(task.id)}
                 variant="waiting"
+                draggable
                 onContextMenu={handleContextMenu}
               />
             ))}
@@ -203,7 +273,14 @@ export default function PlanPage() {
       </CollapsibleSection>
 
       {/* Someday */}
-      <CollapsibleSection title="Someday" count={somedayTasks.length}>
+      <CollapsibleSection
+        title="Someday"
+        count={somedayTasks.length}
+        isDragTarget={dragTarget === 'someday'}
+        onDragOver={handleDragOver('someday')}
+        onDrop={handleDrop('someday', updateTask)}
+        onDragLeave={handleDragLeave('someday')}
+      >
         {somedayTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 px-4">
             No someday tasks
@@ -215,8 +292,13 @@ export default function PlanPage() {
                 key={task.id}
                 task={task}
                 project={getProject(task.project_id)}
+                tags={getTagsForTask(task.id)}
                 variant="someday"
+                hasSubtasks={getSubtasks(task.id).length > 0}
+                draggable
                 onContextMenu={handleContextMenu}
+                onRevive={handleRevive}
+                onLetGo={letGoTask}
               />
             ))}
           </AnimatePresence>
@@ -234,6 +316,19 @@ export default function PlanPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Waiting On modal */}
+      <WaitingOnModal
+        isOpen={!!activeWaitingTaskId}
+        onClose={() => { setWaitingTaskId(null); clearPendingWaiting(); }}
+        onSubmit={(text) => {
+          if (activeWaitingTaskId) {
+            updateTask(activeWaitingTaskId, { status: 'waiting', waiting_on: text });
+          }
+          setWaitingTaskId(null);
+          clearPendingWaiting();
+        }}
+      />
     </div>
   );
 }

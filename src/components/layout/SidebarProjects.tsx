@@ -5,13 +5,14 @@ import { AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
 import { useTaskStore } from '@/lib/hooks/useTaskStore';
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
-import { IconPlus, IconArchive } from '@/components/ui/Icons';
+import { ProjectEditModal } from '@/components/tasks/ProjectEditModal';
+import { IconPlus, IconArchive, IconSettings } from '@/components/ui/Icons';
 import { theme } from '@/config/theme';
 import { MAX_PROJECTS } from '@/config/constants';
 
 export function SidebarProjects() {
   const { activeProjectFilter, setActiveProjectFilter } = useAppStore();
-  const { projects, addProject, archiveProject } = useTaskStore();
+  const { projects, addProject, updateProject, archiveProject } = useTaskStore();
 
   const activeProjects = projects.filter((p) => !p.archived);
   const atLimit = activeProjects.length >= MAX_PROJECTS;
@@ -26,6 +27,8 @@ export function SidebarProjects() {
   const formRef = useRef<HTMLDivElement>(null);
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; projectId: string } | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const editingProject = editingProjectId ? projects.find((p) => p.id === editingProjectId) ?? null : null;
 
   useEffect(() => {
     if (creating) inputRef.current?.focus();
@@ -63,6 +66,11 @@ export function SidebarProjects() {
 
   const contextActions: ContextMenuAction[] = contextMenu
     ? [
+        {
+          label: 'Edit project',
+          icon: <IconSettings size={14} />,
+          onClick: () => setEditingProjectId(contextMenu.projectId),
+        },
         {
           label: 'Archive project',
           icon: <IconArchive size={14} />,
@@ -157,7 +165,7 @@ export function SidebarProjects() {
         ))}
       </div>
 
-      {/* Context menu for archive */}
+      {/* Context menu */}
       <AnimatePresence>
         {contextMenu && (
           <ContextMenu
@@ -168,6 +176,13 @@ export function SidebarProjects() {
           />
         )}
       </AnimatePresence>
+
+      {/* Edit project modal */}
+      <ProjectEditModal
+        project={editingProject}
+        onClose={() => setEditingProjectId(null)}
+        onSave={(id, updates) => updateProject(id, updates)}
+      />
     </div>
   );
 }

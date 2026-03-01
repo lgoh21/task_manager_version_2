@@ -69,7 +69,7 @@ export const theme = {
   },
 } as const;
 
-// CSS variable definitions — applied in globals.css
+// CSS variable definitions — applied in globals.css via :root and .dark
 export const lightTheme = {
   '--color-background': '#FAFAFA',
   '--color-foreground': '#0A0A0A',
@@ -89,4 +89,25 @@ export const lightTheme = {
   '--color-sidebar-foreground': '#171717',
   '--color-sidebar-accent': '#E5E5E5',
   '--color-sidebar-muted': '#A3A3A3',
+} as const;
+
+export const darkTheme = {
+  '--color-background': '#0A0A0A',
+  '--color-foreground': '#FAFAFA',
+  '--color-card': '#141414',
+  '--color-card-foreground': '#FAFAFA',
+  '--color-muted': '#1C1C1C',
+  '--color-muted-foreground': '#A3A3A3',
+  '--color-subtle': '#262626',
+  '--color-border': '#262626',
+  '--color-border-hover': '#3B3B3B',
+  '--color-accent': '#3B82F6',
+  '--color-accent-foreground': '#FFFFFF',
+  '--color-success': '#22C55E',
+  '--color-warning': '#F59E0B',
+  '--color-danger': '#EF4444',
+  '--color-sidebar': '#111111',
+  '--color-sidebar-foreground': '#FAFAFA',
+  '--color-sidebar-accent': '#1C1C1C',
+  '--color-sidebar-muted': '#737373',
 } as const;

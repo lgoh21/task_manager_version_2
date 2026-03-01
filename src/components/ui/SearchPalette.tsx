@@ -13,7 +13,7 @@ const MAX_RESULTS = 12;
 
 export function SearchPalette() {
   const { searchOpen, setSearchOpen, selectTask } = useAppStore();
-  const { tasks, notes, subtasks, getProject } = useTaskStore();
+  const { tasks, notes, subtasks, getProject, getTagsForTask } = useTaskStore();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
@@ -44,13 +44,17 @@ export function SearchPalette() {
       const notesMatch = task.notes?.toLowerCase().includes(q);
       const taskSubtasks = subtasks.filter((s) => s.task_id === task.id);
       const subtaskMatch = taskSubtasks.find((s) => s.text.toLowerCase().includes(q));
+      const taskTags = getTagsForTask(task.id);
+      const tagMatch = taskTags.find((t) => t.name.toLowerCase().includes(q));
 
-      if (titleMatch || notesMatch || subtaskMatch) {
+      if (titleMatch || notesMatch || subtaskMatch || tagMatch) {
         let snippet: string | null = null;
         if (notesMatch && task.notes) {
           snippet = getSnippet(task.notes, q);
         } else if (subtaskMatch) {
           snippet = `Subtask: ${subtaskMatch.text}`;
+        } else if (tagMatch) {
+          snippet = `Tag: #${tagMatch.name}`;
         }
         items.push({ type: 'task', task, project: getProject(task.project_id), snippet });
       }
@@ -65,7 +69,7 @@ export function SearchPalette() {
     }
 
     return items;
-  }, [query, tasks, notes, subtasks, getProject]);
+  }, [query, tasks, notes, subtasks, getProject, getTagsForTask]);
 
   // Reset active index when results change
   useEffect(() => {

@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
-import { IconCalendar } from '@/components/ui/Icons';
+import { IconCalendar, IconPlus } from '@/components/ui/Icons';
+import { DatePicker } from '@/components/tasks/DatePicker';
 import { TASK_SIZES } from '@/config/constants';
 import { formatDueDate } from '@/lib/utils/dates';
 import { getCarriedForwardLabel } from '@/lib/utils/carriedForward';
@@ -10,6 +13,7 @@ import type { Task, TaskSize } from '@/types';
 interface TaskDetailMetaProps {
   task: Task;
   onUpdateSize: (size: TaskSize) => void;
+  onUpdateDueDate: (dueDate: string | null) => void;
 }
 
 function getDueDateUrgency(dateStr: string): 'default' | 'warning' | 'accent' {
@@ -21,8 +25,9 @@ function getDueDateUrgency(dateStr: string): 'default' | 'warning' | 'accent' {
   return 'default';
 }
 
-export function TaskDetailMeta({ task, onUpdateSize }: TaskDetailMetaProps) {
+export function TaskDetailMeta({ task, onUpdateSize, onUpdateDueDate }: TaskDetailMetaProps) {
   const carriedLabel = getCarriedForwardLabel(task);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2.5 px-6 pb-2 mb-4 flex-wrap">
@@ -44,12 +49,36 @@ export function TaskDetailMeta({ task, onUpdateSize }: TaskDetailMetaProps) {
       </div>
 
       {/* Due date */}
-      {task.due_date && (
-        <Badge variant={getDueDateUrgency(task.due_date)} size="md">
-          <IconCalendar size={12} className="mr-1" />
-          {formatDueDate(task.due_date)}
-        </Badge>
-      )}
+      <div className="relative">
+        {task.due_date ? (
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="cursor-pointer"
+          >
+            <Badge variant={getDueDateUrgency(task.due_date)} size="md" className="hover:opacity-80 transition-opacity">
+              <IconCalendar size={12} className="mr-1" />
+              {formatDueDate(task.due_date)}
+            </Badge>
+          </button>
+        ) : (
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
+          >
+            <IconPlus size={12} />
+            Add due date
+          </button>
+        )}
+        <AnimatePresence>
+          {pickerOpen && (
+            <DatePicker
+              currentDate={task.due_date}
+              onSelect={onUpdateDueDate}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Carried forward */}
       {carriedLabel && (

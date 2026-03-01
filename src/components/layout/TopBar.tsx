@@ -3,10 +3,11 @@
 import { useAppStore } from '@/lib/hooks/useAppStore';
 import { CaptureBar } from '@/components/tasks/CaptureBar';
 import { Badge } from '@/components/ui/Badge';
+import { MoonPhaseIcon } from '@/components/ui/MoonPhaseIcon';
 import { IconSearch } from '@/components/ui/Icons';
 
 export function TopBar() {
-  const { doneTodayCount, setSearchOpen, openCaptureModal } = useAppStore();
+  const { doneTodayCount, theme, setSearchOpen, openCaptureModal, toggleTheme } = useAppStore();
 
   const handleCapture = (title: string) => {
     openCaptureModal(title);
@@ -26,6 +27,13 @@ export function TopBar() {
           >
             <IconSearch size={14} />
             <span className="text-xs hidden sm:inline">Search</span>
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            <MoonPhaseIcon size={18} isDark={theme === 'dark'} />
           </button>
           {doneTodayCount > 0 && (
             <Badge variant="success" size="md">
