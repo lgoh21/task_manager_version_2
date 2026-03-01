@@ -88,7 +88,7 @@ export function SidebarProjects() {
     <div className="pt-5 pb-1">
       {/* Section header with + button */}
       <div className="flex items-center justify-between px-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted">
+        <span className="font-mono text-[10.5px] uppercase tracking-wider text-sidebar-muted">
           Projects
         </span>
         {!atLimit && (
@@ -114,7 +114,7 @@ export function SidebarProjects() {
               if (e.key === 'Escape') { setCreating(false); setNewName(''); }
             }}
             placeholder="Project name"
-            className="w-full px-2 py-1 text-sm bg-sidebar-accent/50 border border-border rounded-md outline-none focus:border-accent placeholder:text-sidebar-muted"
+            className="font-ui w-full px-2 py-1 text-[13.5px] bg-sidebar-accent/50 border border-border rounded-md outline-none focus:border-accent placeholder:text-sidebar-muted"
             maxLength={40}
           />
           {/* Colour dots — only show unused colours */}
@@ -147,7 +147,7 @@ export function SidebarProjects() {
               )
             }
             onContextMenu={(e) => handleContextMenu(e, project.id)}
-            className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-all outline-none ${
+            className={`font-ui w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13.5px] transition-all outline-none ${
               activeProjectFilter === project.id
                 ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
                 : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
@@ -157,7 +157,7 @@ export function SidebarProjects() {
             }}
           >
             <span
-              className="w-2.5 h-2.5 rounded-full shrink-0"
+              className="w-[7px] h-[7px] rounded-full shrink-0 opacity-80"
               style={{ backgroundColor: project.colour }}
             />
             <span className="truncate">{project.name}</span>

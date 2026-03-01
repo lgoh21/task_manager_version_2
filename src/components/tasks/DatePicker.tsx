@@ -98,13 +98,13 @@ export function DatePicker({ currentDate, onSelect, onClose }: DatePickerProps) 
     >
       {/* Quick picks */}
       <div className="flex flex-col gap-0.5 mb-2">
-        <button onClick={() => handleQuickPick(0)} className="text-xs px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
+        <button onClick={() => handleQuickPick(0)} className="text-xs font-ui px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
           Today
         </button>
-        <button onClick={() => handleQuickPick(1)} className="text-xs px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
+        <button onClick={() => handleQuickPick(1)} className="text-xs font-ui px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
           Tomorrow
         </button>
-        <button onClick={() => handleQuickPick(7)} className="text-xs px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
+        <button onClick={() => handleQuickPick(7)} className="text-xs font-ui px-2 py-1.5 rounded hover:bg-muted w-full text-left text-foreground">
           Next week
         </button>
       </div>
@@ -112,21 +112,21 @@ export function DatePicker({ currentDate, onSelect, onClose }: DatePickerProps) 
       <div className="h-px bg-border mb-2" />
 
       {/* Date input */}
-      <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Date</label>
+      <label className="block section-label mb-1">Date</label>
       <input
         type="date"
         value={dateValue}
         onChange={(e) => handleDateChange(e.target.value)}
-        className="w-full text-xs px-2 py-1.5 rounded border border-border bg-muted text-foreground outline-none focus:border-accent"
+        className="w-full text-xs font-ui px-2 py-1.5 rounded border border-border bg-muted text-foreground outline-none focus:border-accent"
       />
 
       {/* Time input (optional) */}
-      <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mt-2 mb-1">Time (optional)</label>
+      <label className="block section-label mt-2 mb-1">Time (optional)</label>
       <input
         type="time"
         value={timeValue}
         onChange={(e) => handleTimeChange(e.target.value)}
-        className="w-full text-xs px-2 py-1.5 rounded border border-border bg-muted text-foreground outline-none focus:border-accent"
+        className="w-full text-xs font-ui px-2 py-1.5 rounded border border-border bg-muted text-foreground outline-none focus:border-accent"
       />
 
       {/* Clear */}
@@ -135,7 +135,7 @@ export function DatePicker({ currentDate, onSelect, onClose }: DatePickerProps) 
           <div className="h-px bg-border mt-2 mb-1" />
           <button
             onClick={handleClear}
-            className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded hover:bg-muted w-full text-left text-danger"
+            className="flex items-center gap-1.5 text-xs font-ui px-2 py-1.5 rounded hover:bg-muted w-full text-left text-danger"
           >
             <IconX size={12} />
             No date

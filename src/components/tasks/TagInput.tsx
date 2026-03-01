@@ -79,9 +79,9 @@ export function TagInput({ tags, allTags, onAddTag, onRemoveTag }: TagInputProps
       {tags.map((tag) => (
         <span
           key={tag.id}
-          className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium"
+          className="inline-flex items-center gap-1 text-[11px] font-ui px-2 py-0.5 rounded-md bg-[rgba(107,92,231,0.1)] text-[#6B5CE7] font-medium"
         >
-          #{tag.name}
+          {tag.name}
           <button
             onClick={() => onRemoveTag(tag.id)}
             className="hover:text-accent/70 transition-colors"
@@ -105,7 +105,7 @@ export function TagInput({ tags, allTags, onAddTag, onRemoveTag }: TagInputProps
           onFocus={() => setShowSuggestions(true)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? 'Add tag...' : '+'}
-          className="text-[11px] bg-transparent outline-none text-muted-foreground placeholder:text-muted-foreground/60 w-16"
+          className="text-[11px] font-ui bg-transparent outline-none text-muted-foreground placeholder:text-muted-foreground/60 w-16"
         />
 
         {/* Autocomplete dropdown */}
@@ -115,11 +115,11 @@ export function TagInput({ tags, allTags, onAddTag, onRemoveTag }: TagInputProps
               <button
                 key={tag.id}
                 onClick={() => commitTag(tag.name)}
-                className={`w-full text-left text-xs px-3 py-1.5 transition-colors ${
+                className={`w-full text-left text-xs font-ui px-3 py-1.5 transition-colors ${
                   i === activeIndex ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/50'
                 }`}
               >
-                #{tag.name}
+                {tag.name}
               </button>
             ))}
           </div>

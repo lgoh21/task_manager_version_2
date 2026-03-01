@@ -37,7 +37,7 @@ export function Sidebar() {
       {/* Header */}
       <div className="h-topbar flex items-center justify-between px-3 shrink-0">
         {!sidebarCollapsed && (
-          <span className="text-sm font-semibold text-sidebar-foreground truncate">
+          <span className="font-heading text-[17px] font-semibold text-sidebar-foreground truncate">
             Tempus
           </span>
         )}
@@ -100,7 +100,7 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors ${
+      className={`font-ui flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13.5px] transition-colors ${
         active
           ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
@@ -112,7 +112,7 @@ function NavItem({
         <>
           <span className="truncate">{label}</span>
           {badge !== undefined && badge > 0 && (
-            <span className="ml-auto text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium">
+            <span className="ml-auto font-mono text-[10px] bg-[rgba(0,0,0,0.04)] text-accent px-1.5 py-0.5 rounded-full font-medium">
               {badge}
             </span>
           )}

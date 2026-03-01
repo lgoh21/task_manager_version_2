@@ -43,7 +43,7 @@ export function DetailPanel() {
   };
 
   return (
-    <div className="flex-1 min-w-0">
+    <div className="flex-1 min-w-[384px] bg-muted">
       <AnimatePresence mode="wait">
         {task ? (
           <motion.aside
@@ -51,7 +51,7 @@ export function DetailPanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.15 } }}
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            className="h-full bg-card flex flex-col"
+            className="h-full bg-muted flex flex-col"
           >
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto">
@@ -75,22 +75,17 @@ export function DetailPanel() {
 
               {/* Waiting on block */}
               {task.status === 'waiting' && task.waiting_on && (
-                <div className="mx-6 mb-2 px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-lg">
+                <div className="mx-7 mb-2 px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-lg">
                   <p className="text-xs font-medium text-warning/80 mb-1">Waiting on</p>
                   <p className="text-sm">{task.waiting_on}</p>
                 </div>
               )}
-
-              {/* Section divider */}
-              <div className="mx-6 border-t border-border my-4" />
 
               <TaskNotes
                 notes={task.notes}
                 onUpdateNotes={(notes) => updateTask(task.id, { notes })}
                 isNewTask={!task.notes && task.status === 'inbox'}
               />
-              {/* Section divider */}
-              <div className="mx-6 border-t border-border mb-5" />
 
               <SubtaskList
                 subtasks={subtasks}

@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Reorder } from 'framer-motion';
 import { SUBTASK_SOFT_LIMIT } from '@/config/constants';
-import { IconGripVertical } from '@/components/ui/Icons';
 import type { Subtask } from '@/types';
 
 interface SubtaskListProps {
@@ -56,21 +55,15 @@ export function SubtaskList({ subtasks, onToggle, onAdd, onDelete, onUpdateText,
   const placeholder = total === 0 ? "What's the first step?" : 'Add a step...';
 
   return (
-    <div className="px-6 pb-6">
+    <div className="px-7 pb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <h3 className="section-label">
           Subtasks
         </h3>
         {total > 0 && (
-          <span className="text-xs text-muted-foreground">{doneCount}/{total}</span>
+          <span className="font-mono text-xs text-muted-foreground">{doneCount}/{total}</span>
         )}
       </div>
-
-      {total === 0 && (
-        <p className="text-xs text-muted-foreground/60 mb-2">
-          Breaking it down makes it easier to start
-        </p>
-      )}
 
       {/* Subtask items — drag reorderable */}
       {total > 0 && (
@@ -104,12 +97,9 @@ export function SubtaskList({ subtasks, onToggle, onAdd, onDelete, onUpdateText,
         </Reorder.Group>
       )}
 
-      {/* Static empty-state spacer when no subtasks */}
-      {total === 0 && <div className="mb-3" />}
-
       {/* Add subtask input */}
       <div className="flex items-center gap-3 py-1">
-        <span className="w-[18px] h-[18px] rounded border-[1.5px] border-dashed border-border flex-shrink-0" />
+        <span className="w-[18px] h-[18px] rounded-full border-[1.5px] border-dashed border-border flex-shrink-0" />
         <input
           ref={inputRef}
           value={newText}
@@ -118,7 +108,7 @@ export function SubtaskList({ subtasks, onToggle, onAdd, onDelete, onUpdateText,
             if (e.key === 'Enter') handleAdd();
           }}
           placeholder={placeholder}
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground/40"
+          className="flex-1 font-ui text-[13px] bg-transparent outline-none placeholder:text-[#B0ADA6]"
         />
       </div>
 
@@ -156,16 +146,13 @@ function SubtaskRow({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-2 group py-2 -mx-2 px-2 rounded-md hover:bg-muted/50">
-      {/* Drag handle */}
-      <span className="opacity-0 group-hover:opacity-50 cursor-grab active:cursor-grabbing text-muted-foreground flex-shrink-0">
-        <IconGripVertical size={14} />
-      </span>
-
-      {/* Checkbox */}
+    <div className={`flex items-center gap-2 group py-2 -mx-2 px-2 rounded-md cursor-grab active:cursor-grabbing ${
+      subtask.done ? 'bg-[rgba(77,166,118,0.07)]' : 'hover:bg-muted/50'
+    }`}>
+      {/* Checkbox — circular */}
       <button
         onClick={() => onToggle(subtask.id, !subtask.done)}
-        className={`w-[18px] h-[18px] rounded border-[1.5px] flex-shrink-0 flex items-center justify-center transition-colors ${
+        className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex-shrink-0 flex items-center justify-center transition-colors ${
           subtask.done
             ? 'bg-accent border-accent text-accent-foreground'
             : 'border-border-hover hover:border-accent/50'
@@ -189,12 +176,12 @@ function SubtaskRow({
             if (e.key === 'Enter') onSaveEdit(subtask.id);
             if (e.key === 'Escape') onCancelEdit();
           }}
-          className="flex-1 text-sm bg-transparent outline-none"
+          className="flex-1 font-ui text-sm bg-transparent outline-none"
         />
       ) : (
         <span
           onClick={() => onStartEdit(subtask)}
-          className={`flex-1 text-sm cursor-text ${
+          className={`flex-1 font-ui text-sm cursor-text ${
             subtask.done ? 'line-through text-muted-foreground' : ''
           }`}
         >

@@ -45,7 +45,7 @@ export function ProjectPicker({ projects, currentProjectId, onSelect, onClose }:
       {/* No project option */}
       <button
         onClick={() => { onSelect(null); onClose(); }}
-        className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-muted ${
+        className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm font-ui text-left transition-colors hover:bg-muted ${
           currentProjectId === null ? 'text-foreground font-medium' : 'text-muted-foreground'
         }`}
       >
@@ -59,7 +59,7 @@ export function ProjectPicker({ projects, currentProjectId, onSelect, onClose }:
         <button
           key={project.id}
           onClick={() => { onSelect(project.id); onClose(); }}
-          className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-muted ${
+          className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm font-ui text-left transition-colors hover:bg-muted ${
             currentProjectId === project.id ? 'text-foreground font-medium' : 'text-foreground'
           }`}
         >

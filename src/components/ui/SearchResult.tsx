@@ -35,19 +35,19 @@ export function SearchResult({ item, active, onSelect }: SearchResultProps) {
       >
         <span className="mt-0.5 text-muted-foreground shrink-0">{statusInfo?.icon}</span>
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium block truncate">{task.title}</span>
+          <span className="text-sm font-ui font-medium block truncate">{task.title}</span>
           {snippet && (
-            <span className="text-xs text-muted-foreground block truncate mt-0.5">{snippet}</span>
+            <span className="text-xs font-ui text-muted-foreground block truncate mt-0.5">{snippet}</span>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0 mt-0.5">
           {project && (
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.colour }} />
-              <span className="text-[10px] text-muted-foreground">{project.name}</span>
+              <span className="text-[10px] font-ui text-muted-foreground">{project.name}</span>
             </span>
           )}
-          <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
+          <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
             {statusInfo?.label}
           </span>
         </div>
@@ -64,9 +64,9 @@ export function SearchResult({ item, active, onSelect }: SearchResultProps) {
     >
       <span className="mt-0.5 text-muted-foreground shrink-0"><IconNotes size={12} /></span>
       <div className="flex-1 min-w-0">
-        <span className="text-sm block truncate">{snippet}</span>
+        <span className="text-sm font-ui block truncate">{snippet}</span>
       </div>
-      <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted shrink-0">
+      <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-muted shrink-0">
         Note
       </span>
     </button>

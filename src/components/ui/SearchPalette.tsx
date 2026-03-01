@@ -117,7 +117,7 @@ export function SearchPalette() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="absolute inset-0 bg-foreground/20"
+          className="absolute inset-0 bg-black/50"
           onClick={() => setSearchOpen(false)}
         />
 
@@ -139,7 +139,7 @@ export function SearchPalette() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search tasks, notes, subtasks..."
-              className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+              className="flex-1 text-sm font-ui bg-transparent outline-none placeholder:text-muted-foreground"
             />
             <kbd className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
               esc
@@ -149,7 +149,7 @@ export function SearchPalette() {
           {/* Results */}
           <div className="max-h-[360px] overflow-y-auto p-1.5">
             {query.trim() && results.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">
+              <p className="text-sm font-ui text-muted-foreground text-center py-6">
                 No results for &ldquo;{query}&rdquo;
               </p>
             )}
@@ -165,9 +165,9 @@ export function SearchPalette() {
 
           {/* Footer hint */}
           {results.length > 0 && (
-            <div className="px-4 py-2 border-t border-border flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span><kbd className="font-mono bg-muted px-1 py-0.5 rounded">↑↓</kbd> navigate</span>
-              <span><kbd className="font-mono bg-muted px-1 py-0.5 rounded">↵</kbd> open</span>
+            <div className="px-4 py-2 border-t border-border flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
+              <span><kbd className="bg-muted px-1 py-0.5 rounded">↑↓</kbd> navigate</span>
+              <span><kbd className="bg-muted px-1 py-0.5 rounded">↵</kbd> open</span>
             </div>
           )}
         </motion.div>

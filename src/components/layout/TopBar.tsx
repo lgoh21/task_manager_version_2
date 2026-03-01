@@ -14,15 +14,15 @@ export function TopBar() {
   };
 
   return (
-    <div className="shrink-0">
+    <div className="shrink-0 bg-card border-b border-border">
       <div className="flex items-center">
         <div className="flex-1">
           <CaptureBar onCapture={handleCapture} />
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card">
+        <div className="flex items-center gap-2 px-4 py-2">
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="font-ui flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Search (Ctrl+K)"
           >
             <IconSearch size={14} />
@@ -37,10 +37,10 @@ export function TopBar() {
           </button>
           {doneTodayCount > 0 && (
             <Badge variant="success" size="md">
-              {doneTodayCount} done
+              <span className="font-mono text-[11.5px]">{doneTodayCount} done</span>
             </Badge>
           )}
-          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center font-ui text-xs text-muted-foreground">
             U
           </div>
         </div>

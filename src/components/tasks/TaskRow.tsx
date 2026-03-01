@@ -21,17 +21,8 @@ interface TaskRowProps {
   onLetGo?: (taskId: string) => void;
 }
 
-export function TaskRow({
-  task,
-  project,
-  tags,
-  variant = 'today',
-  hasSubtasks,
-  draggable: isDraggable,
-  onContextMenu,
-  onRevive,
-  onLetGo,
-}: TaskRowProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, draggable: isDraggable, onContextMenu, onRevive, onLetGo }: TaskRowProps) {
   const { selectedTaskId, selectTask } = useAppStore();
   const [isDragging, setIsDragging] = useState(false);
   const isSelected = selectedTaskId === task.id;
@@ -64,26 +55,26 @@ export function TaskRow({
       layout
       onClick={() => selectTask(task.id)}
       onContextMenu={(e) => onContextMenu?.(e, task)}
-      className={`flex flex-col gap-1 px-4 py-3 -mx-4 transition-colors duration-150 hover:bg-subtle ${
-        isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
-      } ${isSelected ? 'bg-muted' : ''}${showNudge ? ' border-l-2 border-dashed border-warning/30' : ''}`}
+      className={`task-row flex-col !items-stretch gap-1 ${
+        isDraggable ? '!cursor-grab active:!cursor-grabbing' : ''
+      } ${isSelected ? 'task-row-selected' : ''}${showNudge ? ' border-l-2 border-dashed border-warning/30' : ''}`}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium leading-snug flex-1 min-w-0 truncate">
+        <span className="font-ui text-sm leading-snug flex-1 min-w-0 truncate">
           {task.title}
         </span>
         {variant === 'upcoming' && task.due_date && (
-          <span className="text-[11px] text-muted-foreground shrink-0">
+          <span className="font-mono text-[11.5px] text-muted-foreground shrink-0">
             {formatDueDate(task.due_date)}
           </span>
         )}
         {carriedLabel && (
-          <span className="text-[11px] text-warning shrink-0">
+          <span className="font-mono text-[11.5px] text-warning shrink-0">
             {carriedLabel}
           </span>
         )}
         {decayLabel && (
-          <span className="text-[11px] text-muted-foreground italic shrink-0">
+          <span className="font-mono text-[11.5px] text-muted-foreground italic shrink-0">
             {decayLabel}
           </span>
         )}
@@ -91,30 +82,18 @@ export function TaskRow({
       </div>
 
       {variant === 'waiting' && task.waiting_on && (
-        <span className="text-xs text-muted-foreground truncate">
+        <span className="font-ui text-xs text-muted-foreground truncate">
           Waiting on {task.waiting_on}
         </span>
       )}
 
-      {(project || (tags && tags.length > 0)) && (
-        <span className="flex items-center gap-1.5 flex-wrap">
-          {project && (
-            <>
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: project.colour }}
-              />
-              <span className="text-xs text-muted-foreground">{project.name}</span>
-            </>
-          )}
-          {tags && tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/10 text-accent"
-            >
-              #{tag.name}
-            </span>
-          ))}
+      {project && (
+        <span className="flex items-center gap-1.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full opacity-70 shrink-0"
+            style={{ backgroundColor: project.colour }}
+          />
+          <span className="font-mono text-[11.5px] text-muted-foreground">{project.name}</span>
         </span>
       )}
     </motion.div>
@@ -145,13 +124,13 @@ function DecayActions({
     <span className="flex items-center gap-1 shrink-0">
       <button
         onClick={(e) => { e.stopPropagation(); onRevive?.(taskId); }}
-        className="text-[11px] font-medium px-1.5 py-0.5 rounded text-accent hover:bg-accent/10"
+        className="font-mono text-[11.5px] font-medium px-1.5 py-0.5 rounded text-accent hover:bg-accent/10"
       >
         Revive
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onLetGo?.(taskId); }}
-        className="text-[11px] font-medium px-1.5 py-0.5 rounded text-muted-foreground hover:bg-muted"
+        className="font-mono text-[11.5px] font-medium px-1.5 py-0.5 rounded text-muted-foreground hover:bg-muted"
       >
         Let go
       </button>

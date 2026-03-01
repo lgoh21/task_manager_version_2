@@ -1,5 +1,5 @@
 // theme.ts — Single source of truth for colours, fonts, spacing
-// Mapped to CSS variables in globals.css for runtime theming
+// Mapped to CSS variables in globals.css via :root and .dark
 
 export const theme = {
   colors: {
@@ -36,17 +36,18 @@ export const theme = {
 
   // Project colour palette (max 7 active projects)
   projectColors: [
-    { name: 'Blue', value: '#3B82F6' },
-    { name: 'Purple', value: '#8B5CF6' },
-    { name: 'Green', value: '#10B981' },
-    { name: 'Orange', value: '#F59E0B' },
-    { name: 'Pink', value: '#EC4899' },
-    { name: 'Teal', value: '#14B8A6' },
-    { name: 'Red', value: '#EF4444' },
+    { name: 'Red', value: '#B44D3E' },
+    { name: 'Purple', value: '#6B5CE7' },
+    { name: 'Green', value: '#4DA676' },
+    { name: 'Orange', value: '#D4873A' },
+    { name: 'Pink', value: '#C4567A' },
+    { name: 'Teal', value: '#3A9E8F' },
+    { name: 'Blue', value: '#4A8FD4' },
   ],
 
   fonts: {
-    sans: 'var(--font-sans)',
+    heading: 'var(--font-heading)',
+    ui: 'var(--font-ui)',
     mono: 'var(--font-mono)',
   },
 
@@ -69,45 +70,46 @@ export const theme = {
   },
 } as const;
 
-// CSS variable definitions — applied in globals.css via :root and .dark
+// Light theme — warm cream/stone palette
 export const lightTheme = {
-  '--color-background': '#FAFAFA',
-  '--color-foreground': '#0A0A0A',
+  '--color-background': '#F6F4F0',
+  '--color-foreground': '#2D2B27',
   '--color-card': '#FFFFFF',
-  '--color-card-foreground': '#0A0A0A',
-  '--color-muted': '#F5F5F5',
-  '--color-muted-foreground': '#737373',
-  '--color-subtle': '#E5E5E5',
-  '--color-border': '#E5E5E5',
-  '--color-border-hover': '#D4D4D4',
-  '--color-accent': '#2563EB',
+  '--color-card-foreground': '#2D2B27',
+  '--color-muted': '#F1EFEB',
+  '--color-muted-foreground': '#8A877E',
+  '--color-subtle': '#E8E5DF',
+  '--color-border': '#E8E5DF',
+  '--color-border-hover': '#D0CDC6',
+  '--color-accent': '#B44D3E',
   '--color-accent-foreground': '#FFFFFF',
-  '--color-success': '#16A34A',
-  '--color-warning': '#D97706',
-  '--color-danger': '#DC2626',
-  '--color-sidebar': '#F5F5F5',
-  '--color-sidebar-foreground': '#171717',
-  '--color-sidebar-accent': '#E5E5E5',
-  '--color-sidebar-muted': '#A3A3A3',
+  '--color-success': '#4DA676',
+  '--color-warning': '#C9940A',
+  '--color-danger': '#B44D3E',
+  '--color-sidebar': '#F1EFEB',
+  '--color-sidebar-foreground': '#3D3B37',
+  '--color-sidebar-accent': 'rgba(0,0,0,0.045)',
+  '--color-sidebar-muted': '#8A877E',
 } as const;
 
+// Dark theme — warm dark variant
 export const darkTheme = {
-  '--color-background': '#0A0A0A',
-  '--color-foreground': '#FAFAFA',
-  '--color-card': '#141414',
-  '--color-card-foreground': '#FAFAFA',
-  '--color-muted': '#1C1C1C',
-  '--color-muted-foreground': '#A3A3A3',
-  '--color-subtle': '#262626',
-  '--color-border': '#262626',
-  '--color-border-hover': '#3B3B3B',
-  '--color-accent': '#3B82F6',
+  '--color-background': '#1A1917',
+  '--color-foreground': '#E8E5DF',
+  '--color-card': '#222120',
+  '--color-card-foreground': '#E8E5DF',
+  '--color-muted': '#2A2826',
+  '--color-muted-foreground': '#9C9990',
+  '--color-subtle': '#3D3B37',
+  '--color-border': '#3D3B37',
+  '--color-border-hover': '#5C5A55',
+  '--color-accent': '#D4705F',
   '--color-accent-foreground': '#FFFFFF',
-  '--color-success': '#22C55E',
-  '--color-warning': '#F59E0B',
-  '--color-danger': '#EF4444',
-  '--color-sidebar': '#111111',
-  '--color-sidebar-foreground': '#FAFAFA',
-  '--color-sidebar-accent': '#1C1C1C',
-  '--color-sidebar-muted': '#737373',
+  '--color-success': '#5DBF8A',
+  '--color-warning': '#E0A820',
+  '--color-danger': '#D4705F',
+  '--color-sidebar': '#1E1D1B',
+  '--color-sidebar-foreground': '#E8E5DF',
+  '--color-sidebar-accent': 'rgba(255,255,255,0.06)',
+  '--color-sidebar-muted': '#9C9990',
 } as const;

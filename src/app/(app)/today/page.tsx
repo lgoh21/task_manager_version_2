@@ -10,7 +10,6 @@ import { TaskRow } from '@/components/tasks/TaskRow';
 import { TodayEmptyState } from '@/components/tasks/TodayEmptyState';
 import { WaitingOnModal } from '@/components/tasks/WaitingOnModal';
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
-import { Badge } from '@/components/ui/Badge';
 import {
   IconMoon,
   IconPause,
@@ -26,9 +25,8 @@ interface MenuState {
 }
 
 export default function TodayPage() {
-  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject, getTagsForTask, getAllTags } = useTaskStore();
-  const { activeProjectFilter, activeTagFilter, setActiveTagFilter, incrementDoneToday } = useAppStore();
-  const allTags = getAllTags();
+  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject, getTagsForTask } = useTaskStore();
+  const { activeProjectFilter, incrementDoneToday } = useAppStore();
 
   const allTodayTasks = getTasksByStatus('today');
   const todayTasks = useMemo(() => {
@@ -36,13 +34,8 @@ export default function TodayPage() {
     if (activeProjectFilter) {
       filtered = filtered.filter((t) => t.project_id === activeProjectFilter);
     }
-    if (activeTagFilter) {
-      filtered = filtered.filter((t) =>
-        getTagsForTask(t.id).some((tag) => tag.id === activeTagFilter)
-      );
-    }
     return filtered;
-  }, [allTodayTasks, activeProjectFilter, activeTagFilter, getTagsForTask]);
+  }, [allTodayTasks, activeProjectFilter]);
   const inboxTasks = getTasksByStatus('inbox');
   const somedayTasks = getTasksByStatus('someday');
   const upcomingTasks = getTasksByStatus('upcoming');
@@ -55,7 +48,7 @@ export default function TodayPage() {
   const [waitingTaskId, setWaitingTaskId] = useState<string | null>(null);
 
   const heavyDay = isHeavyDay(todayTasks);
-  const isEmpty = todayTasks.length === 0 && !activeProjectFilter && !activeTagFilter;
+  const isEmpty = todayTasks.length === 0 && !activeProjectFilter;
 
   const handleAddToToday = (taskId: string) => {
     updateTask(taskId, { status: 'today', sort_order: todayTasks.length });
@@ -110,12 +103,12 @@ export default function TodayPage() {
   ];
 
   return (
-    <div className="p-4">
+    <div>
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
+      <div className="px-8 pt-8">
+        <h1 className="font-heading text-[30px] font-bold tracking-tight">Today</h1>
         <div className="flex items-center gap-2 mt-0.5">
-          <p className="text-muted-foreground text-sm">
+          <p className="font-mono text-[13px] text-muted-foreground">
             {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
@@ -123,47 +116,22 @@ export default function TodayPage() {
             })}
           </p>
           {heavyDay && (
-            <Badge variant="warning" size="sm">Heavy day</Badge>
+            <span className="font-mono text-[11.5px] font-medium text-accent">Heavy day</span>
           )}
         </div>
       </div>
 
-      {/* Tag filter pills */}
-      {allTags.length > 0 && (
-        <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-          {allTags.map((tag) => (
-            <button
-              key={tag.id}
-              onClick={() => setActiveTagFilter(activeTagFilter === tag.id ? null : tag.id)}
-              className={`text-[11px] px-2 py-0.5 rounded-full transition-colors ${
-                activeTagFilter === tag.id
-                  ? 'bg-accent text-accent-foreground'
-                  : 'bg-accent/10 text-accent hover:bg-accent/20'
-              }`}
-            >
-              #{tag.name}
-            </button>
-          ))}
-          {activeTagFilter && (
-            <button
-              onClick={() => setActiveTagFilter(null)}
-              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Empty state or task list */}
       {isEmpty ? (
-        <TodayEmptyState
-          inboxTasks={inboxTasks}
-          upcomingThisWeek={upcomingThisWeek}
-          recentSomeday={somedayTasks}
-          projects={projects}
-          onAddToToday={handleAddToToday}
-        />
+        <div className="px-8">
+          <TodayEmptyState
+            inboxTasks={inboxTasks}
+            upcomingThisWeek={upcomingThisWeek}
+            recentSomeday={somedayTasks}
+            projects={projects}
+            onAddToToday={handleAddToToday}
+          />
+        </div>
       ) : (
         <div className="mt-4">
           <Reorder.Group

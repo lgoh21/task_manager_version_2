@@ -29,7 +29,7 @@ export function CaptureBar({ onCapture }: CaptureBarProps) {
   );
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card">
+    <div className="flex items-center gap-2 px-4 py-2">
       <button
         onClick={handleSubmit}
         className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
@@ -45,9 +45,9 @@ export function CaptureBar({ onCapture }: CaptureBarProps) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Capture a task..."
-        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+        className="font-ui flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50"
       />
-      <kbd className="hidden sm:inline-flex text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+      <kbd className="hidden sm:inline-flex font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
         &#8984;N
       </kbd>
     </div>

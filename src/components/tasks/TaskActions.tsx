@@ -62,7 +62,7 @@ export function TaskActions({
   const isWaiting = task.status === 'waiting';
 
   return (
-    <div className="border-t border-border px-6 py-3 bg-card">
+    <div className="border-t border-border px-5 py-3 bg-muted">
       {showWaitingInput && (
         <div className="flex items-center gap-2 mb-3">
           <input
@@ -138,7 +138,7 @@ export function TaskActions({
           </button>
 
           {showMore && (
-            <div className="absolute bottom-full right-0 mb-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[160px] z-10">
+            <div className="absolute bottom-full right-0 mb-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[160px] z-10 font-ui">
               {isOnToday && (
                 <button
                   onClick={() => { onMoveToSomeday(); setShowMore(false); }}

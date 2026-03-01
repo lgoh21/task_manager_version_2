@@ -14,10 +14,10 @@ export function ContentArea({ children }: { children: React.ReactNode }) {
     <div className="flex-1 flex overflow-hidden">
       {showDetailPanel ? (
         <>
-          <main className="flex-[2] min-w-[320px] max-w-[520px] overflow-y-auto border-r border-border">
+          <main className="min-w-[320px] max-w-[520px] w-[520px] shrink-0 overflow-y-auto border-r border-border">
             {children}
           </main>
-          <DetailPanel />
+          <DetailPanel />  {/* flex-1 min-w-[384px] via DetailPanel wrapper */}
         </>
       ) : (
         <main className="flex-1 overflow-y-auto">

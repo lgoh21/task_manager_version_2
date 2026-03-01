@@ -23,8 +23,6 @@ interface AppStore {
   setActiveProjectFilter: (projectId: string | null) => void;
   incrementDoneToday: () => void;
   setSearchOpen: (open: boolean) => void;
-  activeTagFilter: string | null;
-  setActiveTagFilter: (tag: string | null) => void;
   openCaptureModal: (title: string) => void;
   closeCaptureModal: () => void;
   toggleTheme: () => void;
@@ -40,7 +38,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpenState] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [captureModalTitle, setCaptureModalTitle] = useState('');
-  const [activeTagFilter, setActiveTagFilterState] = useState<string | null>(null);
   const [theme, setThemeState] = useState<ThemeMode>('light');
 
   // Sync theme with DOM and localStorage
@@ -81,10 +78,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setSearchOpenState(open);
   }, []);
 
-  const setActiveTagFilter = useCallback((tag: string | null) => {
-    setActiveTagFilterState(tag);
-  }, []);
-
   const openCaptureModal = useCallback((title: string) => {
     setCaptureModalTitle(title);
     setCaptureModalOpen(true);
@@ -105,13 +98,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         searchOpen,
         captureModalOpen,
         captureModalTitle,
-        activeTagFilter,
         theme,
         selectTask,
         toggleSidebar,
         setSidebarCollapsed,
         setActiveProjectFilter,
-        setActiveTagFilter,
         incrementDoneToday,
         setSearchOpen,
         openCaptureModal,

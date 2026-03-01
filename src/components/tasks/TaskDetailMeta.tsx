@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/Badge';
-import { IconCalendar, IconPlus } from '@/components/ui/Icons';
 import { DatePicker } from '@/components/tasks/DatePicker';
 import { TASK_SIZES } from '@/config/constants';
 import { formatDueDate } from '@/lib/utils/dates';
@@ -16,74 +14,131 @@ interface TaskDetailMetaProps {
   onUpdateDueDate: (dueDate: string | null) => void;
 }
 
-function getDueDateUrgency(dateStr: string): 'default' | 'warning' | 'accent' {
-  const now = new Date();
-  const due = new Date(dateStr);
-  const diffDays = Math.round((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return 'warning';
-  if (diffDays <= 2) return 'warning';
-  return 'default';
+const SIZE_LABELS: Record<string, string> = {
+  S: 'Small',
+  M: 'Medium',
+  L: 'Large',
+};
+
+function getStatusLabel(task: Task): string {
+  switch (task.status) {
+    case 'inbox': return 'Inbox';
+    case 'today': return 'Today';
+    case 'someday': return 'Someday';
+    case 'upcoming': return 'Upcoming';
+    case 'waiting': return 'Waiting';
+    case 'done': return 'Done';
+    case 'let_go': return 'Let go';
+    default: return task.status;
+  }
 }
 
 export function TaskDetailMeta({ task, onUpdateSize, onUpdateDueDate }: TaskDetailMetaProps) {
   const carriedLabel = getCarriedForwardLabel(task);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [sizePickerOpen, setSizePickerOpen] = useState(false);
+  const sizeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sizePickerOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (sizeRef.current && !sizeRef.current.contains(e.target as Node)) {
+        setSizePickerOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSizePickerOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [sizePickerOpen]);
+
+  const statusDisplay = carriedLabel || getStatusLabel(task);
+  const isCarried = !!carriedLabel;
 
   return (
-    <div className="flex items-center gap-2.5 px-6 pb-2 mb-4 flex-wrap">
-      {/* Size pills */}
-      <div className="flex items-center rounded-full bg-muted p-0.5 border border-border">
-        {TASK_SIZES.map((s) => (
-          <button
-            key={s}
-            onClick={() => onUpdateSize(s)}
-            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${
-              task.size === s
-                ? 'bg-foreground text-background shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+    <div className="px-7 mb-8">
+      <div className="border-t border-b border-border py-2">
+        {/* Size row */}
+        <div className="flex items-center min-h-[36px]">
+          <span className="w-[100px] font-mono text-xs text-muted-foreground shrink-0">
+            Size
+          </span>
+          <div className="relative" ref={sizeRef}>
+            <button
+              onClick={() => setSizePickerOpen((v) => !v)}
+              className="font-ui text-[13.5px] text-foreground hover:text-foreground/70 transition-colors cursor-pointer"
+            >
+              {SIZE_LABELS[task.size] || task.size}
+            </button>
+            {sizePickerOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 min-w-[120px] bg-card border border-border rounded-lg shadow-lg py-1">
+                {TASK_SIZES.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => {
+                      onUpdateSize(s);
+                      setSizePickerOpen(false);
+                    }}
+                    className={`flex items-center w-full px-3 py-1.5 text-sm text-left transition-colors hover:bg-muted ${
+                      task.size === s ? 'text-foreground font-medium' : 'text-foreground'
+                    }`}
+                  >
+                    {SIZE_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-      {/* Due date */}
-      <div className="relative">
-        {task.due_date ? (
-          <button
-            onClick={() => setPickerOpen((v) => !v)}
-            className="cursor-pointer"
-          >
-            <Badge variant={getDueDateUrgency(task.due_date)} size="md" className="hover:opacity-80 transition-opacity">
-              <IconCalendar size={12} className="mr-1" />
-              {formatDueDate(task.due_date)}
-            </Badge>
-          </button>
-        ) : (
-          <button
-            onClick={() => setPickerOpen((v) => !v)}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors cursor-pointer"
-          >
-            <IconPlus size={12} />
-            Add due date
-          </button>
-        )}
-        <AnimatePresence>
-          {pickerOpen && (
-            <DatePicker
-              currentDate={task.due_date}
-              onSelect={onUpdateDueDate}
-              onClose={() => setPickerOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-      </div>
+        {/* Due row */}
+        <div className="flex items-center min-h-[36px]">
+          <span className="w-[100px] font-mono text-xs text-muted-foreground shrink-0">
+            Due
+          </span>
+          <div className="relative">
+            {task.due_date ? (
+              <button
+                onClick={() => setDatePickerOpen((v) => !v)}
+                className="font-ui text-[13.5px] text-foreground hover:text-foreground/70 transition-colors cursor-pointer"
+              >
+                {formatDueDate(task.due_date)}
+              </button>
+            ) : (
+              <button
+                onClick={() => setDatePickerOpen((v) => !v)}
+                className="font-ui text-[13.5px] text-[#B0ADA6] hover:text-muted-foreground transition-colors cursor-pointer"
+              >
+                + Add due date
+              </button>
+            )}
+            <AnimatePresence>
+              {datePickerOpen && (
+                <DatePicker
+                  currentDate={task.due_date}
+                  onSelect={onUpdateDueDate}
+                  onClose={() => setDatePickerOpen(false)}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
-      {/* Carried forward */}
-      {carriedLabel && (
-        <Badge variant="warning" size="md">{carriedLabel}</Badge>
-      )}
+        {/* Status row */}
+        <div className="flex items-center min-h-[36px]">
+          <span className="w-[100px] font-mono text-xs text-muted-foreground shrink-0">
+            Status
+          </span>
+          <span className={`font-ui text-[13.5px] ${isCarried ? 'text-warning' : 'text-foreground'}`}>
+            {statusDisplay}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

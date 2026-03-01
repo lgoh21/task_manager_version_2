@@ -29,8 +29,9 @@ const config: Config = {
         "sidebar-muted": "var(--color-sidebar-muted)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        heading: ["var(--font-heading)", "Georgia", "serif"],
+        ui: ["var(--font-ui)", "-apple-system", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       width: {
         sidebar: "16rem",

@@ -66,8 +66,8 @@ export default function HistoryPage() {
     <div className="p-4 max-w-3xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-        <p className="text-muted-foreground mt-0.5 text-sm">
+        <h1 className="font-heading text-[30px] font-bold tracking-tight">History</h1>
+        <p className="font-ui text-muted-foreground mt-0.5 text-sm">
           Completed and let-go tasks
         </p>
       </div>
@@ -90,7 +90,7 @@ export default function HistoryPage() {
 
       {/* Done this week summary */}
       {activeTab === 'completed' && doneThisWeek > 0 && (
-        <div className="mt-3 text-sm text-success font-medium">
+        <div className="mt-3 text-sm font-ui text-success font-medium">
           {doneThisWeek} done this week
         </div>
       )}
@@ -103,14 +103,14 @@ export default function HistoryPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search history..."
-          className="w-full pl-9 pr-3 py-2 text-sm bg-muted/50 border border-border rounded-lg outline-none focus:border-accent/40 transition-colors placeholder:text-muted-foreground"
+          className="w-full pl-9 pr-3 py-2 text-sm font-ui bg-muted/50 border border-border rounded-lg outline-none focus:border-accent/40 transition-colors placeholder:text-muted-foreground"
         />
       </div>
 
       {/* Task list */}
       <div className="mt-4 space-y-2">
         {filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
+          <p className="text-sm font-ui text-muted-foreground py-8 text-center">
             {search.trim()
               ? 'No matching tasks found.'
               : activeTab === 'completed'
@@ -150,14 +150,14 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+      className={`px-3 py-2 text-sm font-ui font-medium border-b-2 transition-colors -mb-px ${
         active
           ? 'border-accent text-foreground'
           : 'border-transparent text-muted-foreground hover:text-foreground'
       }`}
     >
       {label}
-      <span className="ml-1.5 text-xs text-muted-foreground">{count}</span>
+      <span className="ml-1.5 text-xs font-mono text-muted-foreground">{count}</span>
     </button>
   );
 }

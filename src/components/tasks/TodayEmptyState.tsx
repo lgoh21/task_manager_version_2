@@ -24,7 +24,7 @@ export function TodayEmptyState({
 
   return (
     <div className="mt-12 max-w-md mx-auto">
-      <p className="text-lg text-center text-muted-foreground">
+      <p className="text-lg font-heading text-center text-muted-foreground">
         What are you focusing on today?
       </p>
 
@@ -73,7 +73,7 @@ export function TodayEmptyState({
       )}
 
       {!hasAnything && (
-        <p className="text-sm text-center text-muted-foreground/60 mt-3">
+        <p className="text-sm font-ui text-center text-muted-foreground/60 mt-3">
           Capture a task or plan your day from the Plan view.
         </p>
       )}
@@ -93,7 +93,7 @@ function PlanningSection({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <span className="section-label">
           {title}
         </span>
         {count !== undefined && (
@@ -124,16 +124,16 @@ function PlanningRow({
           style={{ backgroundColor: project.colour }}
         />
       )}
-      <span className="flex-1 text-sm truncate">{task.title}</span>
+      <span className="flex-1 text-sm font-ui truncate">{task.title}</span>
       {subtitle && (
-        <span className="text-xs text-muted-foreground">{subtitle}</span>
+        <span className="text-xs font-mono text-muted-foreground">{subtitle}</span>
       )}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onAdd();
         }}
-        className="text-xs text-accent opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 rounded hover:bg-accent/10"
+        className="text-xs font-ui text-accent opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 rounded hover:bg-accent/10"
       >
         + Today
       </button>

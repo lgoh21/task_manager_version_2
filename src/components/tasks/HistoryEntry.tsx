@@ -44,17 +44,17 @@ export function HistoryEntry({ task, project, subtasks, onRestore, onDelete }: H
         className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors"
       >
         <IconCheck size={14} className="text-muted-foreground shrink-0" />
-        <span className="flex-1 text-sm font-medium truncate">{task.title}</span>
+        <span className="flex-1 text-sm font-ui font-medium truncate">{task.title}</span>
         {project && (
           <span className="flex items-center gap-1.5 shrink-0">
             <span
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: project.colour }}
             />
-            <span className="text-xs text-muted-foreground">{project.name}</span>
+            <span className="text-xs font-ui text-muted-foreground">{project.name}</span>
           </span>
         )}
-        <span className="text-xs text-muted-foreground shrink-0">{dateLabel}</span>
+        <span className="text-xs font-mono text-muted-foreground shrink-0">{dateLabel}</span>
         <motion.span
           animate={{ rotate: expanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -77,14 +77,14 @@ export function HistoryEntry({ task, project, subtasks, onRestore, onDelete }: H
             <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
               {/* Meta row */}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
                   {task.size}
                 </span>
                 {task.status === 'done' && (
-                  <span className="text-xs text-success font-medium">Completed</span>
+                  <span className="text-xs font-ui text-success font-medium">Completed</span>
                 )}
                 {task.status === 'let_go' && (
-                  <span className="text-xs text-muted-foreground font-medium">Let go</span>
+                  <span className="text-xs font-ui text-muted-foreground font-medium">Let go</span>
                 )}
               </div>
 
@@ -100,11 +100,11 @@ export function HistoryEntry({ task, project, subtasks, onRestore, onDelete }: H
               {/* Subtasks */}
               {subtasks.length > 0 && (
                 <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="section-label">
                     Subtasks ({subtasks.filter((s) => s.done).length}/{subtasks.length})
                   </span>
                   {subtasks.map((st) => (
-                    <div key={st.id} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div key={st.id} className="flex items-center gap-2 text-sm font-ui text-muted-foreground">
                       {st.done ? (
                         <IconCheckSquare size={14} className="text-success shrink-0" />
                       ) : (
@@ -120,7 +120,7 @@ export function HistoryEntry({ task, project, subtasks, onRestore, onDelete }: H
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); onRestore(task.id); }}
-                  className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent/80 transition-colors px-2 py-1.5 rounded-md hover:bg-accent/5"
+                  className="flex items-center gap-1.5 text-xs font-ui font-medium text-accent hover:text-accent/80 transition-colors px-2 py-1.5 rounded-md hover:bg-accent/5"
                 >
                   <IconRotateCcw size={13} />
                   Restore to Inbox
@@ -128,14 +128,14 @@ export function HistoryEntry({ task, project, subtasks, onRestore, onDelete }: H
                 {!confirmDelete ? (
                   <button
                     onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-danger transition-colors px-2 py-1.5 rounded-md hover:bg-danger/5"
+                    className="flex items-center gap-1.5 text-xs font-ui font-medium text-muted-foreground hover:text-danger transition-colors px-2 py-1.5 rounded-md hover:bg-danger/5"
                   >
                     <IconTrash size={13} />
                     Delete
                   </button>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-danger">Delete permanently?</span>
+                    <span className="text-xs font-ui text-danger">Delete permanently?</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
                       className="text-xs font-medium text-danger hover:text-danger/80 px-2 py-1 rounded-md bg-danger/10"

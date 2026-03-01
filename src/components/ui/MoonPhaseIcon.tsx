@@ -9,33 +9,54 @@ interface MoonPhaseIconProps {
 }
 
 /**
- * Renders the current real lunar phase as an SVG.
- * When isDark (dark mode is active), the moon glows with a warm colour.
+ * Light mode: sun icon. Dark mode: current real lunar phase with glow.
  */
 export function MoonPhaseIcon({ size = 18, isDark = false, className = '' }: MoonPhaseIconProps) {
+  if (!isDark) {
+    return <SunIcon size={size} className={className} />;
+  }
+
+  return <MoonIcon size={size} className={className} />;
+}
+
+function SunIcon({ size, className }: { size: number; className: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="2" x2="12" y2="4.5" />
+      <line x1="12" y1="19.5" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="4.5" y2="12" />
+      <line x1="19.5" y1="12" x2="22" y2="12" />
+      <line x1="4.93" y1="4.93" x2="6.7" y2="6.7" />
+      <line x1="17.3" y1="17.3" x2="19.07" y2="19.07" />
+      <line x1="4.93" y1="19.07" x2="6.7" y2="17.3" />
+      <line x1="17.3" y1="6.7" x2="19.07" y2="4.93" />
+    </svg>
+  );
+}
+
+function MoonIcon({ size, className }: { size: number; className: string }) {
   const { phase, illumination } = getLunarPhase();
 
-  // The moon disc
   const r = 8;
   const cx = 12;
   const cy = 12;
 
-  // Build the illuminated portion using an arc + ellipse edge
-  // phase 0 = new moon (all shadow), 0.5 = full moon (all lit)
-  // The terminator is an ellipse whose x-radius varies with phase
   const terminatorX = Math.cos(phase * 2 * Math.PI) * r;
-
-  // Determine which side is lit
   const isWaxing = phase < 0.5;
-
-  // Build SVG path for the lit portion
-  // We draw from top to bottom using two arcs:
-  // 1. The outer edge (always a semicircle on the lit side)
-  // 2. The terminator (an elliptical curve)
   const litPath = buildLitPath(cx, cy, r, terminatorX, isWaxing);
 
-  const glowColor = isDark ? '#FCD34D' : 'currentColor';
-  const fillOpacity = isDark ? Math.max(illumination, 0.3) : Math.max(illumination * 0.6, 0.15);
+  const glowColor = '#FCD34D';
+  const fillOpacity = Math.max(illumination, 0.3);
 
   return (
     <svg
@@ -44,19 +65,16 @@ export function MoonPhaseIcon({ size = 18, isDark = false, className = '' }: Moo
       viewBox="0 0 24 24"
       fill="none"
       className={className}
-      style={{ filter: isDark ? `drop-shadow(0 0 ${3 + illumination * 4}px ${glowColor}40)` : undefined }}
+      style={{ filter: `drop-shadow(0 0 ${3 + illumination * 4}px ${glowColor}40)` }}
     >
-      {/* Moon outline */}
       <circle
         cx={cx}
         cy={cy}
         r={r}
-        stroke={isDark ? glowColor : 'currentColor'}
+        stroke={glowColor}
         strokeWidth="1.5"
         fill="none"
-        opacity={isDark ? 1 : 0.7}
       />
-      {/* Illuminated portion */}
       <path
         d={litPath}
         fill={glowColor}

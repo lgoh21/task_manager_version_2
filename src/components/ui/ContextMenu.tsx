@@ -64,7 +64,7 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
               action.onClick();
               onClose();
             }}
-            className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-muted ${
+            className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm font-ui text-left transition-colors hover:bg-muted ${
               action.variant === 'danger'
                 ? 'text-danger hover:bg-danger/5'
                 : 'text-foreground'

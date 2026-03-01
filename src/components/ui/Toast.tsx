@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate="animate"
               exit="exit"
               layout
-              className="bg-card border border-border shadow-lg rounded-lg px-4 py-2.5 text-sm flex items-center gap-2"
+              className="bg-card border border-border shadow-lg rounded-lg px-4 py-2.5 text-sm font-ui text-foreground flex items-center gap-2"
             >
               {toast.type === 'success' && (
                 <span className="text-success">&#10003;</span>

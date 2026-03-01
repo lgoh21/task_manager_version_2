@@ -32,29 +32,29 @@ export function CollapsibleSection({
 
   return (
     <div
-      className={`mt-6 first:mt-0 transition-colors duration-150 rounded-lg ${
+      className={`mt-6 first:mt-0 transition-colors duration-150 ${
         isDragTarget ? 'bg-accent/5 ring-2 ring-dashed ring-accent/20' : ''
       }`}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragLeave={onDragLeave}
     >
-      {/* Section header — matches page heading style */}
+      {/* Section header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 w-full pb-1 border-b border-border mb-1"
+        className="flex items-center gap-2 w-full px-8 pb-1 border-b border-border mb-1"
       >
         <motion.span
           animate={{ rotate: isOpen ? 0 : -90 }}
           transition={{ duration: 0.15 }}
           className="text-muted-foreground"
         >
-          <IconChevronDown size={14} />
+          <IconChevronDown size={12} />
         </motion.span>
-        <span className="text-sm font-medium text-foreground">
+        <span className="font-mono uppercase text-[10.5px] tracking-wider text-muted-foreground">
           {title}
         </span>
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="font-mono text-[10.5px] text-muted-foreground/60 tabular-nums">
           {count}
         </span>
         {badge && (
@@ -73,7 +73,6 @@ export function CollapsibleSection({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             style={{ overflow: 'hidden' }}
-            className="-mx-4 px-4"
           >
             {children}
           </motion.div>

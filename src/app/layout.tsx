@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Newsreader, Outfit, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/lib/hooks/useQueryProvider";
 import { AppStoreProvider } from "@/lib/hooks/useAppStore";
 import { ToastProvider } from "@/components/ui/Toast";
 import { TaskStoreProvider } from "@/lib/hooks/useTaskStore";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+  adjustFontFallback: false,
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-ui",
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${newsreader.variable} ${outfit.variable} ${ibmPlexMono.variable} font-ui antialiased`}
       >
         <QueryProvider>
           <AppStoreProvider>

@@ -63,8 +63,8 @@ export function TaskNotes({ notes, onUpdateNotes, isNewTask }: TaskNotesProps) {
   const showNudge = isNewTask && !notes && !nudgeDismissed && !isEditing;
 
   return (
-    <div className="px-6 pb-6">
-      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Notes</h3>
+    <div className="px-7 pb-6">
+      <h3 className="section-label mb-3">Notes</h3>
 
       {showNudge && (
         <p
@@ -76,20 +76,40 @@ export function TaskNotes({ notes, onUpdateNotes, isNewTask }: TaskNotesProps) {
       )}
 
       {isEditing ? (
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              handleBlur();
-              setIsEditing(false);
-            }
-          }}
-          placeholder="Add context, links, thoughts..."
-          className="w-full min-h-[120px] text-sm bg-transparent border border-border rounded-lg p-3 outline-none focus:border-accent/50 resize-y leading-relaxed"
-        />
+        <div className="border border-border rounded-md overflow-hidden">
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleChange}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                handleBlur();
+                setIsEditing(false);
+              }
+              if (e.key === 'Escape') {
+                handleBlur();
+                setIsEditing(false);
+              }
+            }}
+            placeholder="Add context, links, thoughts..."
+            className="w-full min-h-[120px] font-ui text-sm font-light text-foreground bg-[rgba(255,255,255,0.4)] p-3 outline-none resize-y leading-relaxed placeholder:text-[#B0ADA6] dark:bg-[rgba(255,255,255,0.03)]"
+          />
+          <div className="flex items-center justify-between px-3 py-1.5 border-t border-border bg-muted/50">
+            <span className="text-[10px] font-mono text-muted-foreground">
+              Markdown supported
+            </span>
+            <button
+              onClick={() => {
+                handleBlur();
+                setIsEditing(false);
+              }}
+              className="text-xs font-ui font-medium px-3 py-1 rounded-md bg-accent text-accent-foreground transition-opacity hover:opacity-90"
+            >
+              Save
+            </button>
+          </div>
+        </div>
       ) : (
         <div
           onClick={() => setIsEditing(true)}
@@ -100,7 +120,7 @@ export function TaskNotes({ notes, onUpdateNotes, isNewTask }: TaskNotesProps) {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground/60">
+            <p className="font-ui text-[13px] text-[#B0ADA6]">
               Add context, links, thoughts...
             </p>
           )}
