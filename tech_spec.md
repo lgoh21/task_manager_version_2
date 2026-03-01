@@ -1,7 +1,7 @@
 # Tempus — Tech Spec
 
 **Stack:** Next.js 14 (App Router) + Supabase + Framer Motion + Vercel
-**Last updated:** 28 Feb 2026
+**Last updated:** 1 Mar 2026
 
 ---
 
@@ -37,9 +37,12 @@ tempus/
 │   │   ├── layout/             # App shell (Sidebar, TopBar, DetailPanel)
 │   │   └── animations/         # Framer Motion wrappers (CompletionAnimation, SlidePanel, DecayFade)
 │   ├── lib/
-│   │   ├── supabase/           # Supabase client, queries, types
-│   │   ├── hooks/              # Custom React hooks
-│   │   └── utils/              # Helpers, date functions, constants
+│   │   ├── api/                # Supabase CRUD (raw DB operations per table)
+│   │   ├── hooks/
+│   │   │   ├── queries/        # React Query hooks (data fetching + optimistic mutations)
+│   │   │   └── *.ts/tsx        # App store, auth bootstrap, keyboard shortcuts, etc.
+│   │   ├── supabase/           # Supabase client/server/middleware
+│   │   └── utils/              # Pure helpers (decay, dates, tasks, carriedForward)
 │   ├── config/
 │   │   ├── theme.ts            # Colours, fonts, spacing — single source of truth
 │   │   ├── constants.ts        # Decay timings, heavy day threshold, size weights
@@ -174,18 +177,22 @@ Use a lightweight markdown renderer (e.g. `react-markdown`) for the task notes f
 
 ## Auth
 
-Supabase Auth with email/password. Keep it simple for MVP. Magic link login as a stretch goal.
+Supabase Auth with email/password. Session managed via `@supabase/ssr` cookies.
 
-Row-level security (RLS) on all tables: users can only read/write their own data.
+- `AuthBootstrap` (`lib/hooks/useAuthBootstrap.tsx`) blocks rendering until session resolves
+- Middleware (`lib/supabase/middleware.ts`) refreshes session and redirects unauthenticated users to `/auth/login`
+- User ID cached in-memory via `lib/api/auth.ts` — all API calls use `getCachedUserId()` (sync)
+- Auth callback route at `/auth/callback` handles code exchange for password reset / future OAuth
+- Row-level security (RLS) on all tables: `auth.uid() = user_id`
 
 ---
 
 ## Deployment
 
-- Push to GitHub → Vercel auto-deploys
+- GitHub repo → Vercel auto-deploys on push to `master`
 - Supabase project for database + auth
-- Environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Custom domain when ready
+- Environment variables (set in Vercel): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Update Supabase Site URL + redirect URLs when domain changes
 
 ---
 
