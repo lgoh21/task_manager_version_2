@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useProjects, useUpdateProject } from '@/lib/hooks/queries/useProjects';
+import { createClient } from '@/lib/supabase/client';
+import { setCachedUserId } from '@/lib/api/auth';
 import { ProjectEditModal } from '@/components/tasks/ProjectEditModal';
 import { MoonPhaseIcon } from '@/components/ui/MoonPhaseIcon';
 import { IconArchive, IconRotateCcw } from '@/components/ui/Icons';
-import { theme } from '@/config/theme';
 import {
   HEAVY_DAY,
   DECAY,
@@ -15,8 +18,19 @@ import {
 } from '@/config/constants';
 
 export default function SettingsPage() {
-  const { theme: themeMode, toggleTheme } = useAppStore();
-  const { projects, updateProject, archiveProject, unarchiveProject } = useTaskStore();
+  const { theme: themeMode, toggleTheme, userEmail } = useAppStore();
+  const { data: projects = [] } = useProjects();
+  const updateProjectMutation = useUpdateProject();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setCachedUserId('');
+    queryClient.clear();
+    router.push('/auth/login');
+  }
 
   const activeProjects = projects.filter((p) => !p.archived);
   const archivedProjects = projects.filter((p) => p.archived);
@@ -108,7 +122,7 @@ export default function SettingsPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => archiveProject(project.id)}
+                      onClick={() => updateProjectMutation.mutate({ id: project.id, updates: { archived: true } })}
                       className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-all"
                       title="Archive project"
                     >
@@ -136,7 +150,7 @@ export default function SettingsPage() {
                       />
                       <span className="text-sm font-ui flex-1">{project.name}</span>
                       <button
-                        onClick={() => unarchiveProject(project.id)}
+                        onClick={() => updateProjectMutation.mutate({ id: project.id, updates: { archived: false } })}
                         className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1"
                         title="Unarchive project"
                       >
@@ -152,18 +166,28 @@ export default function SettingsPage() {
         )}
       </SettingsSection>
 
-      {/* Account (placeholder) */}
+      {/* Account */}
       <SettingsSection title="Account">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm text-muted-foreground font-medium">
-            U
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm text-muted-foreground font-medium">
+              {userEmail?.[0]?.toUpperCase() ?? 'U'}
+            </div>
+            <div>
+              <p className="text-sm font-ui font-medium">{userEmail ?? 'Not signed in'}</p>
+              <p className="text-xs font-ui text-muted-foreground/60">
+                {userEmail ? 'Signed in' : 'Connect Supabase to sync across devices'}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-ui font-medium text-muted-foreground">Not signed in</p>
-            <p className="text-xs font-ui text-muted-foreground/60">
-              Connect Supabase to sync across devices
-            </p>
-          </div>
+          {userEmail && (
+            <button
+              onClick={handleSignOut}
+              className="text-sm font-ui text-danger hover:underline"
+            >
+              Sign out
+            </button>
+          )}
         </div>
       </SettingsSection>
 
@@ -181,7 +205,7 @@ export default function SettingsPage() {
       <ProjectEditModal
         project={editingProject}
         onClose={() => setEditingProjectId(null)}
-        onSave={(id, updates) => updateProject(id, updates)}
+        onSave={(id, updates) => updateProjectMutation.mutate({ id, updates })}
       />
     </div>
   );

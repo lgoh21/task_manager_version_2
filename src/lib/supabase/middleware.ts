@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to login (except auth routes)
+  // Redirect unauthenticated users to login (except auth routes and root)
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&

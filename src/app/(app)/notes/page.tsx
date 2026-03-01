@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useNotes, useCreateNote, useUpdateNote, useDeleteNote, useConvertNoteToTask } from '@/lib/hooks/queries/useNotes';
 import { useToast } from '@/components/ui/Toast';
 import { formatTimestamp } from '@/lib/utils/dates';
 import { IconTrash, IconArrowUp } from '@/components/ui/Icons';
@@ -19,7 +19,11 @@ const NOTE_TINTS = [
 ];
 
 export default function NotesPage() {
-  const { notes, addNote, updateNote, deleteNote, convertNoteToTask } = useTaskStore();
+  const { data: notes = [] } = useNotes();
+  const createNote = useCreateNote();
+  const updateNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
+  const convertNote = useConvertNoteToTask();
   const { showToast } = useToast();
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -27,19 +31,17 @@ export default function NotesPage() {
   const [editDraft, setEditDraft] = useState('');
   const editRef = useRef<HTMLTextAreaElement>(null);
 
-  const sortedNotes = [...notes].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const sortedNotes = notes;
 
   const handleSave = useCallback(() => {
     const content = draft.trim();
     if (!content) return;
-    addNote(content);
+    createNote.mutate(content);
     setDraft('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [draft, addNote]);
+  }, [draft, createNote]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -53,10 +55,14 @@ export default function NotesPage() {
 
   const handleConvert = useCallback(
     (id: string) => {
-      const task = convertNoteToTask(id);
-      showToast(`"${task.title}" added to Inbox`);
+      const note = (notes ?? []).find((n) => n.id === id);
+      if (!note) return;
+      const firstLine = note.content.split('\n')[0] ?? 'Untitled task';
+      const title = firstLine.replace(/\*\*/g, '').trim() || 'Untitled task';
+      convertNote.mutate(note);
+      showToast(`"${title}" added to Inbox`);
     },
-    [convertNoteToTask, showToast]
+    [notes, convertNote, showToast]
   );
 
   // Auto-resize textarea
@@ -81,10 +87,10 @@ export default function NotesPage() {
     if (!editingId) return;
     const trimmed = editDraft.trim();
     if (trimmed) {
-      updateNote(editingId, trimmed);
+      updateNoteMutation.mutate({ id: editingId, content: trimmed });
     }
     setEditingId(null);
-  }, [editingId, editDraft, updateNote]);
+  }, [editingId, editDraft, updateNoteMutation]);
 
   const cancelEdit = useCallback(() => {
     setEditingId(null);
@@ -218,7 +224,7 @@ export default function NotesPage() {
                             <span>To task</span>
                           </button>
                           <button
-                            onClick={() => deleteNote(note.id)}
+                            onClick={() => deleteNoteMutation.mutate(note.id)}
                             className="flex items-center gap-1 text-[11px] font-ui text-muted-foreground hover:text-danger transition-colors"
                             title="Delete note"
                           >

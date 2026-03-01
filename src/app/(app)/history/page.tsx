@@ -2,7 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks, useRestoreTask, useDeleteTask } from '@/lib/hooks/queries/useTasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useAllSubtasks } from '@/lib/hooks/queries/useSubtasks';
 import { useToast } from '@/components/ui/Toast';
 import { isThisWeek } from '@/lib/utils/dates';
 import { IconSearch } from '@/components/ui/Icons';
@@ -11,25 +13,29 @@ import { HistoryEntry } from '@/components/tasks/HistoryEntry';
 type HistoryTab = 'completed' | 'let_go';
 
 export default function HistoryPage() {
-  const { tasks, getProject, getSubtasks, restoreTask, deleteTask } = useTaskStore();
+  const { data: allTasks = [] } = useAllTasks();
+  const { data: projects = [] } = useProjects();
+  const { data: allSubtasks = [] } = useAllSubtasks();
+  const restoreTaskMutation = useRestoreTask();
+  const deleteTaskMutation = useDeleteTask();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<HistoryTab>('completed');
   const [search, setSearch] = useState('');
 
   const completedTasks = useMemo(
     () =>
-      tasks
+      allTasks
         .filter((t) => t.status === 'done')
         .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime()),
-    [tasks]
+    [allTasks]
   );
 
   const letGoTasks = useMemo(
     () =>
-      tasks
+      allTasks
         .filter((t) => t.status === 'let_go')
         .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime()),
-    [tasks]
+    [allTasks]
   );
 
   const doneThisWeek = useMemo(
@@ -46,19 +52,19 @@ export default function HistoryPage() {
       (t) =>
         t.title.toLowerCase().includes(q) ||
         t.notes?.toLowerCase().includes(q) ||
-        getProject(t.project_id)?.name.toLowerCase().includes(q)
+        projects.find((p) => p.id === t.project_id)?.name.toLowerCase().includes(q)
     );
-  }, [activeTasks, search, getProject]);
+  }, [activeTasks, search, projects]);
 
   const handleRestore = (id: string) => {
-    const task = tasks.find((t) => t.id === id);
-    restoreTask(id);
+    const task = allTasks.find((t) => t.id === id);
+    restoreTaskMutation.mutate(id);
     showToast(`"${task?.title}" restored to Inbox`);
   };
 
   const handleDelete = (id: string) => {
-    const task = tasks.find((t) => t.id === id);
-    deleteTask(id);
+    const task = allTasks.find((t) => t.id === id);
+    deleteTaskMutation.mutate(id);
     showToast(`"${task?.title}" deleted permanently`);
   };
 
@@ -123,8 +129,8 @@ export default function HistoryPage() {
               <HistoryEntry
                 key={task.id}
                 task={task}
-                project={getProject(task.project_id)}
-                subtasks={getSubtasks(task.id)}
+                project={projects.find((p) => p.id === task.project_id) ?? null}
+                subtasks={allSubtasks.filter((s) => s.task_id === task.id)}
                 onRestore={handleRestore}
                 onDelete={handleDelete}
               />

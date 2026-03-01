@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useCreateTask } from '@/lib/hooks/queries/useTasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
 import { useToast } from '@/components/ui/Toast';
 import { ProjectPicker } from '@/components/tasks/ProjectPicker';
 import { smoothTransition } from '@/config/animations';
@@ -17,7 +18,8 @@ const SIZE_OPTIONS: { value: TaskSize; label: string }[] = [
 
 export function CaptureModal() {
   const { captureModalOpen, captureModalTitle, closeCaptureModal } = useAppStore();
-  const { addTask, updateTask, projects } = useTaskStore();
+  const createTask = useCreateTask();
+  const { data: projects = [] } = useProjects();
   const { showToast } = useToast();
 
   const [title, setTitle] = useState('');
@@ -51,15 +53,13 @@ export function CaptureModal() {
     (status: 'inbox' | 'today') => {
       const trimmed = title.trim();
       if (!trimmed) return;
-      const task = addTask(trimmed);
-      const updates: Record<string, unknown> = {};
-      if (status === 'today') updates.status = 'today';
-      if (notes.trim()) updates.notes = notes.trim();
-      if (size !== 'M') updates.size = size;
-      if (projectId) updates.project_id = projectId;
-      if (Object.keys(updates).length > 0) {
-        updateTask(task.id, updates);
-      }
+      createTask.mutate({
+        title: trimmed,
+        status,
+        notes: notes.trim() || undefined,
+        size: size !== 'M' ? size : undefined,
+        project_id: projectId || undefined,
+      });
       closeCaptureModal();
       showToast(
         status === 'today'
@@ -67,7 +67,7 @@ export function CaptureModal() {
           : `"${trimmed.length > 30 ? trimmed.slice(0, 30) + '...' : trimmed}" added to Inbox`
       );
     },
-    [title, notes, size, projectId, addTask, updateTask, closeCaptureModal, showToast]
+    [title, notes, size, projectId, createTask, closeCaptureModal, showToast]
   );
 
   const handleKeyDown = useCallback(

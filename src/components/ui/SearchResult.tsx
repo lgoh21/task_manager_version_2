@@ -1,7 +1,7 @@
 'use client';
 
 import type { Task, Note, Project } from '@/types';
-import { IconToday, IconPlan, IconNotes, IconHistory, IconInbox, IconMoon, IconPause, IconCalendar } from '@/components/ui/Icons';
+import { IconToday, IconNotes, IconHistory, IconInbox, IconMoon, IconPause, IconCalendar } from '@/components/ui/Icons';
 
 const STATUS_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
   today: { label: 'Today', icon: <IconToday size={12} /> },
@@ -55,7 +55,7 @@ export function SearchResult({ item, active, onSelect }: SearchResultProps) {
     );
   }
 
-  const { note, snippet } = item;
+  const { snippet } = item;
   return (
     <button
       onClick={onSelect}

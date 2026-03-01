@@ -4,7 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/lib/hooks/useQueryProvider";
 import { AppStoreProvider } from "@/lib/hooks/useAppStore";
 import { ToastProvider } from "@/components/ui/Toast";
-import { TaskStoreProvider } from "@/lib/hooks/useTaskStore";
+import { AuthBootstrap } from "@/lib/hooks/useAuthBootstrap";
 
 const newsreader = Newsreader({
   subsets: ["latin"],
@@ -48,7 +48,7 @@ export default function RootLayout({
         <QueryProvider>
           <AppStoreProvider>
             <ToastProvider>
-              <TaskStoreProvider>{children}</TaskStoreProvider>
+              <AuthBootstrap>{children}</AuthBootstrap>
             </ToastProvider>
           </AppStoreProvider>
         </QueryProvider>

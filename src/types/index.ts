@@ -97,6 +97,7 @@ export interface UpdateTaskInput {
   sort_order?: number;
   days_on_today?: number;
   completed_at?: string | null;
+  updated_at?: string;
 }
 
 /** For creating a subtask */

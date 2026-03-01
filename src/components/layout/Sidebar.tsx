@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks } from '@/lib/hooks/queries/useTasks';
 import { sidebarVariants } from '@/config/animations';
 import { SidebarProjects } from '@/components/layout/SidebarProjects';
 import {
@@ -24,9 +24,9 @@ const secondaryItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
-  const { getTasksByStatus } = useTaskStore();
+  const { data: allTasks = [] } = useAllTasks();
 
-  const inboxCount = getTasksByStatus('inbox').length;
+  const inboxCount = allTasks.filter(t => t.status === 'inbox').length;
 
   return (
     <motion.aside

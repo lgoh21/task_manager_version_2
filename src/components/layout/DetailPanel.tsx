@@ -2,7 +2,10 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks, useUpdateTask, useDeleteTask, useCompleteTask, useLetGoTask } from '@/lib/hooks/queries/useTasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useSubtasksByTask, useCreateSubtask, useUpdateSubtask, useDeleteSubtask } from '@/lib/hooks/queries/useSubtasks';
+import { useTagsForTask, useAllTags, useAddTagToTask, useRemoveTagFromTask } from '@/lib/hooks/queries/useTags';
 import { useToast } from '@/components/ui/Toast';
 import { TaskDetailHeader } from '@/components/tasks/TaskDetailHeader';
 import { TaskDetailMeta } from '@/components/tasks/TaskDetailMeta';
@@ -13,18 +16,30 @@ import type { TaskSize } from '@/types';
 
 export function DetailPanel() {
   const { selectedTaskId, selectTask, incrementDoneToday } = useAppStore();
-  const { getTaskById, getProject, getSubtasks, getTagsForTask, getAllTags, addTagToTask, removeTagFromTask, projects, updateTask, deleteTask, completeTask, letGoTask, addSubtask, updateSubtask, deleteSubtask } = useTaskStore();
   const { showToast } = useToast();
 
-  const task = selectedTaskId ? getTaskById(selectedTaskId) : undefined;
-  const project = task ? getProject(task.project_id) : null;
-  const subtasks = task ? getSubtasks(task.id) : [];
-  const tags = task ? getTagsForTask(task.id) : [];
-  const allTags = getAllTags();
+  const { data: allTasks = [] } = useAllTasks();
+  const { data: projects = [] } = useProjects();
+  const { data: allTags = [] } = useAllTags();
+
+  const task = selectedTaskId ? allTasks.find(t => t.id === selectedTaskId) ?? null : null;
+  const project = task ? projects.find(p => p.id === task.project_id) ?? null : null;
+  const { data: subtasks = [] } = useSubtasksByTask(task?.id ?? null);
+  const { data: tags = [] } = useTagsForTask(task?.id ?? null);
+
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  const completeTaskMutation = useCompleteTask();
+  const letGoTaskMutation = useLetGoTask();
+  const createSubtask = useCreateSubtask();
+  const updateSubtaskMutation = useUpdateSubtask();
+  const deleteSubtaskMutation = useDeleteSubtask();
+  const addTagMutation = useAddTagToTask();
+  const removeTagMutation = useRemoveTagFromTask();
 
   const handleComplete = () => {
     if (!task) return;
-    completeTask(task.id);
+    completeTaskMutation.mutate(task.id);
     incrementDoneToday();
     showToast(`${task.title.length > 30 ? task.title.slice(0, 30) + '...' : task.title} done`);
     selectTask(null);
@@ -32,13 +47,13 @@ export function DetailPanel() {
 
   const handleDelete = () => {
     if (!task) return;
-    deleteTask(task.id);
+    deleteTaskMutation.mutate(task.id);
     selectTask(null);
   };
 
   const handleLetGo = () => {
     if (!task) return;
-    letGoTask(task.id);
+    letGoTaskMutation.mutate(task.id);
     selectTask(null);
   };
 
@@ -61,16 +76,16 @@ export function DetailPanel() {
                 projects={projects}
                 tags={tags}
                 allTags={allTags}
-                onUpdateTitle={(title) => updateTask(task.id, { title })}
-                onUpdateProject={(projectId) => updateTask(task.id, { project_id: projectId })}
-                onAddTag={(name) => addTagToTask(task.id, name)}
-                onRemoveTag={(tagId) => removeTagFromTask(task.id, tagId)}
+                onUpdateTitle={(title) => updateTaskMutation.mutate({ id: task.id, updates: { title } })}
+                onUpdateProject={(projectId) => updateTaskMutation.mutate({ id: task.id, updates: { project_id: projectId } })}
+                onAddTag={(name) => addTagMutation.mutate({ taskId: task.id, tagName: name })}
+                onRemoveTag={(tagId) => removeTagMutation.mutate({ taskId: task.id, tagId })}
                 onClose={() => selectTask(null)}
               />
               <TaskDetailMeta
                 task={task}
-                onUpdateSize={(size: TaskSize) => updateTask(task.id, { size })}
-                onUpdateDueDate={(dueDate) => updateTask(task.id, { due_date: dueDate })}
+                onUpdateSize={(size: TaskSize) => updateTaskMutation.mutate({ id: task.id, updates: { size } })}
+                onUpdateDueDate={(dueDate) => updateTaskMutation.mutate({ id: task.id, updates: { due_date: dueDate } })}
               />
 
               {/* Waiting on block */}
@@ -83,19 +98,19 @@ export function DetailPanel() {
 
               <TaskNotes
                 notes={task.notes}
-                onUpdateNotes={(notes) => updateTask(task.id, { notes })}
+                onUpdateNotes={(notes) => updateTaskMutation.mutate({ id: task.id, updates: { notes } })}
                 isNewTask={!task.notes && task.status === 'inbox'}
               />
 
               <SubtaskList
                 subtasks={subtasks}
-                onToggle={(id, done) => updateSubtask(id, { done })}
-                onAdd={(text) => addSubtask(task.id, text)}
-                onDelete={deleteSubtask}
-                onUpdateText={(id, text) => updateSubtask(id, { text })}
+                onToggle={(id, done) => updateSubtaskMutation.mutate({ id, taskId: task.id, updates: { done } })}
+                onAdd={(text) => createSubtask.mutate({ taskId: task.id, text, sortOrder: subtasks.length })}
+                onDelete={(id) => deleteSubtaskMutation.mutate({ id, taskId: task.id })}
+                onUpdateText={(id, text) => updateSubtaskMutation.mutate({ id, taskId: task.id, updates: { text } })}
                 onReorder={(reordered) => {
                   reordered.forEach((s, i) => {
-                    if (s.sort_order !== i) updateSubtask(s.id, { sort_order: i });
+                    if (s.sort_order !== i) updateSubtaskMutation.mutate({ id: s.id, taskId: task!.id, updates: { sort_order: i } });
                   });
                 }}
               />
@@ -104,11 +119,11 @@ export function DetailPanel() {
             {/* Fixed bottom action bar */}
             <TaskActions
               task={task}
-              onMoveToToday={() => updateTask(task.id, { status: 'today', waiting_on: null })}
+              onMoveToToday={() => updateTaskMutation.mutate({ id: task.id, updates: { status: 'today', waiting_on: null } })}
               onComplete={handleComplete}
-              onWaitingOn={(text) => updateTask(task.id, { status: 'waiting', waiting_on: text })}
-              onUnblock={() => updateTask(task.id, { status: 'today', waiting_on: null })}
-              onMoveToSomeday={() => updateTask(task.id, { status: 'someday' })}
+              onWaitingOn={(text) => updateTaskMutation.mutate({ id: task.id, updates: { status: 'waiting', waiting_on: text } })}
+              onUnblock={() => updateTaskMutation.mutate({ id: task.id, updates: { status: 'today', waiting_on: null } })}
+              onMoveToSomeday={() => updateTaskMutation.mutate({ id: task.id, updates: { status: 'someday' } })}
               onLetGo={handleLetGo}
               onDelete={handleDelete}
             />

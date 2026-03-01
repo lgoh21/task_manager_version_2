@@ -2,7 +2,9 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import { AnimatePresence, Reorder } from 'framer-motion';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks, useUpdateTask, useDeleteTask, useCompleteTask, useLetGoTask } from '@/lib/hooks/queries/useTasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useAllTags, useAllTaskTags } from '@/lib/hooks/queries/useTags';
 import { useAppStore } from '@/lib/hooks/useAppStore';
 import { isHeavyDay } from '@/lib/utils/tasks';
 import { isThisWeek } from '@/lib/utils/dates';
@@ -25,10 +27,25 @@ interface MenuState {
 }
 
 export default function TodayPage() {
-  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject, getTagsForTask } = useTaskStore();
+  const { data: allTasks = [] } = useAllTasks();
+  const { data: projects = [] } = useProjects();
+  const { data: allTagsList = [] } = useAllTags();
+  const { data: allTaskTags = [] } = useAllTaskTags();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  const completeTaskMutation = useCompleteTask();
+  const letGoTaskMutation = useLetGoTask();
   const { activeProjectFilter, incrementDoneToday } = useAppStore();
 
-  const allTodayTasks = getTasksByStatus('today');
+  const getTagsForTask = useCallback((taskId: string) => {
+    const tagIds = allTaskTags.filter(tt => tt.task_id === taskId).map(tt => tt.tag_id);
+    return allTagsList.filter(t => tagIds.includes(t.id));
+  }, [allTaskTags, allTagsList]);
+
+  const allTodayTasks = useMemo(
+    () => allTasks.filter(t => t.status === 'today').sort((a, b) => a.sort_order - b.sort_order),
+    [allTasks]
+  );
   const todayTasks = useMemo(() => {
     let filtered = allTodayTasks;
     if (activeProjectFilter) {
@@ -36,9 +53,9 @@ export default function TodayPage() {
     }
     return filtered;
   }, [allTodayTasks, activeProjectFilter]);
-  const inboxTasks = getTasksByStatus('inbox');
-  const somedayTasks = getTasksByStatus('someday');
-  const upcomingTasks = getTasksByStatus('upcoming');
+  const inboxTasks = useMemo(() => allTasks.filter(t => t.status === 'inbox'), [allTasks]);
+  const somedayTasks = useMemo(() => allTasks.filter(t => t.status === 'someday'), [allTasks]);
+  const upcomingTasks = useMemo(() => allTasks.filter(t => t.status === 'upcoming'), [allTasks]);
 
   const upcomingThisWeek = upcomingTasks.filter(
     (t) => t.due_date && isThisWeek(t.due_date)
@@ -51,13 +68,13 @@ export default function TodayPage() {
   const isEmpty = todayTasks.length === 0 && !activeProjectFilter;
 
   const handleAddToToday = (taskId: string) => {
-    updateTask(taskId, { status: 'today', sort_order: todayTasks.length });
+    updateTaskMutation.mutate({ id: taskId, updates: { status: 'today', sort_order: todayTasks.length } });
   };
 
   const handleReorder = (newOrder: typeof todayTasks) => {
     newOrder.forEach((task, index) => {
       if (task.sort_order !== index) {
-        updateTask(task.id, { sort_order: index });
+        updateTaskMutation.mutate({ id: task.id, updates: { sort_order: index } });
       }
     });
   };
@@ -81,23 +98,23 @@ export default function TodayPage() {
     {
       label: 'Move to Someday',
       icon: <IconMoon size={14} />,
-      onClick: () => updateTask(task.id, { status: 'someday', due_date: null }),
+      onClick: () => updateTaskMutation.mutate({ id: task.id, updates: { status: 'someday', due_date: null } }),
     },
     {
       label: 'Complete',
       icon: <IconCheck size={14} />,
-      onClick: () => { completeTask(task.id); incrementDoneToday(); },
+      onClick: () => { completeTaskMutation.mutate(task.id); incrementDoneToday(); },
       separator: true,
     },
     {
       label: 'Let Go',
       icon: <IconMoon size={14} />,
-      onClick: () => letGoTask(task.id),
+      onClick: () => letGoTaskMutation.mutate(task.id),
     },
     {
       label: 'Delete',
       icon: <IconTrash size={14} />,
-      onClick: () => deleteTask(task.id),
+      onClick: () => deleteTaskMutation.mutate(task.id),
       variant: 'danger',
     },
   ];
@@ -149,7 +166,7 @@ export default function TodayPage() {
                 >
                   <TaskRow
                     task={task}
-                    project={getProject(task.project_id)}
+                    project={projects.find(p => p.id === task.project_id) ?? null}
                     tags={getTagsForTask(task.id)}
                     variant="today"
                     onContextMenu={handleContextMenu}
@@ -178,7 +195,7 @@ export default function TodayPage() {
         onClose={() => setWaitingTaskId(null)}
         onSubmit={(text) => {
           if (waitingTaskId) {
-            updateTask(waitingTaskId, { status: 'waiting', waiting_on: text });
+            updateTaskMutation.mutate({ id: waitingTaskId, updates: { status: 'waiting', waiting_on: text } });
           }
           setWaitingTaskId(null);
         }}

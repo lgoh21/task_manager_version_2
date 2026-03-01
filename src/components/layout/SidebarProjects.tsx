@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useProjects, useCreateProject, useUpdateProject } from '@/lib/hooks/queries/useProjects';
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
 import { ProjectEditModal } from '@/components/tasks/ProjectEditModal';
 import { IconPlus, IconArchive, IconSettings } from '@/components/ui/Icons';
@@ -12,7 +12,9 @@ import { MAX_PROJECTS } from '@/config/constants';
 
 export function SidebarProjects() {
   const { activeProjectFilter, setActiveProjectFilter } = useAppStore();
-  const { projects, addProject, updateProject, archiveProject } = useTaskStore();
+  const { data: projects = [] } = useProjects();
+  const createProject = useCreateProject();
+  const updateProjectMutation = useUpdateProject();
 
   const activeProjects = projects.filter((p) => !p.archived);
   const atLimit = activeProjects.length >= MAX_PROJECTS;
@@ -54,7 +56,7 @@ export function SidebarProjects() {
   const handleCreate = () => {
     const trimmed = newName.trim();
     if (!trimmed) { setCreating(false); return; }
-    addProject(trimmed, selectedColour);
+    createProject.mutate({ name: trimmed, colour: selectedColour });
     setNewName('');
     setCreating(false);
   };
@@ -75,7 +77,7 @@ export function SidebarProjects() {
           label: 'Archive project',
           icon: <IconArchive size={14} />,
           onClick: () => {
-            archiveProject(contextMenu.projectId);
+            updateProjectMutation.mutate({ id: contextMenu.projectId, updates: { archived: true } });
             if (activeProjectFilter === contextMenu.projectId) {
               setActiveProjectFilter(null);
             }
@@ -181,7 +183,7 @@ export function SidebarProjects() {
       <ProjectEditModal
         project={editingProject}
         onClose={() => setEditingProjectId(null)}
-        onSave={(id, updates) => updateProject(id, updates)}
+        onSave={(id, updates) => updateProjectMutation.mutate({ id, updates })}
       />
     </div>
   );

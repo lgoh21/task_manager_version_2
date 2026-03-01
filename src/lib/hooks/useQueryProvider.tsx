@@ -12,8 +12,8 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Data is fresh for 30 seconds
-            staleTime: 30 * 1000,
+            // Data is fresh for 2 minutes — prevents refetches on tab switch
+            staleTime: 2 * 60 * 1000,
             // Keep cached data for 5 minutes
             gcTime: 5 * 60 * 1000,
             // Refetch on window focus

@@ -4,7 +4,11 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/hooks/useAppStore';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks } from '@/lib/hooks/queries/useTasks';
+import { useNotes } from '@/lib/hooks/queries/useNotes';
+import { useAllSubtasks } from '@/lib/hooks/queries/useSubtasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useAllTags, useAllTaskTags } from '@/lib/hooks/queries/useTags';
 import { IconSearch } from '@/components/ui/Icons';
 import { SearchResult, type SearchResultItem } from '@/components/ui/SearchResult';
 import { smoothTransition } from '@/config/animations';
@@ -13,8 +17,18 @@ const MAX_RESULTS = 12;
 
 export function SearchPalette() {
   const { searchOpen, setSearchOpen, selectTask } = useAppStore();
-  const { tasks, notes, subtasks, getProject, getTagsForTask } = useTaskStore();
+  const { data: tasks = [] } = useAllTasks();
+  const { data: notes = [] } = useNotes();
+  const { data: subtasks = [] } = useAllSubtasks();
+  const { data: projects = [] } = useProjects();
+  const { data: allTagsList = [] } = useAllTags();
+  const { data: allTaskTags = [] } = useAllTaskTags();
   const router = useRouter();
+
+  const getTagsForTask = useCallback((taskId: string) => {
+    const tagIds = allTaskTags.filter(tt => tt.task_id === taskId).map(tt => tt.tag_id);
+    return allTagsList.filter(t => tagIds.includes(t.id));
+  }, [allTaskTags, allTagsList]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -56,7 +70,7 @@ export function SearchPalette() {
         } else if (tagMatch) {
           snippet = `Tag: #${tagMatch.name}`;
         }
-        items.push({ type: 'task', task, project: getProject(task.project_id), snippet });
+        items.push({ type: 'task', task, project: projects.find(p => p.id === task.project_id) ?? null, snippet });
       }
     }
 
@@ -69,7 +83,7 @@ export function SearchPalette() {
     }
 
     return items;
-  }, [query, tasks, notes, subtasks, getProject, getTagsForTask]);
+  }, [query, tasks, notes, subtasks, projects, getTagsForTask]);
 
   // Reset active index when results change
   useEffect(() => {

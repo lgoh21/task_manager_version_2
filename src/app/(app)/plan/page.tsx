@@ -2,7 +2,10 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAllTasks, useUpdateTask, useDeleteTask, useCompleteTask, useLetGoTask } from '@/lib/hooks/queries/useTasks';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useAllSubtasks } from '@/lib/hooks/queries/useSubtasks';
+import { useAllTags, useAllTaskTags } from '@/lib/hooks/queries/useTags';
 import { useAppStore } from '@/lib/hooks/useAppStore';
 import { usePlanDrag } from '@/lib/hooks/usePlanDrag';
 import { TaskRow } from '@/components/tasks/TaskRow';
@@ -25,18 +28,28 @@ interface MenuState {
 }
 
 export default function PlanPage() {
-  const {
-    getTasksByStatus,
-    getProject,
-    getSubtasks,
-    getTagsForTask,
-    updateTask,
-    deleteTask,
-    completeTask,
-    letGoTask,
-  } = useTaskStore();
+  const { data: allTasks = [] } = useAllTasks();
+  const { data: projects = [] } = useProjects();
+  const { data: allSubtasks = [] } = useAllSubtasks();
+  const { data: allTagsList = [] } = useAllTags();
+  const { data: allTaskTags = [] } = useAllTaskTags();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
+  const completeTaskMutation = useCompleteTask();
+  const letGoTaskMutation = useLetGoTask();
   const { activeProjectFilter } = useAppStore();
   const { dragTarget, pendingWaitingTaskId, clearPendingWaiting, handleDragOver, handleDragLeave, handleDrop } = usePlanDrag();
+
+  const getProject = useCallback((id: string | null) => projects.find(p => p.id === id) ?? null, [projects]);
+  const getSubtasksForTask = useCallback((taskId: string) => allSubtasks.filter(s => s.task_id === taskId), [allSubtasks]);
+  const getTagsForTask = useCallback((taskId: string) => {
+    const tagIds = allTaskTags.filter(tt => tt.task_id === taskId).map(tt => tt.tag_id);
+    return allTagsList.filter(t => tagIds.includes(t.id));
+  }, [allTaskTags, allTagsList]);
+
+  const doUpdateTask = useCallback((id: string, updates: Record<string, unknown>) => {
+    updateTaskMutation.mutate({ id, updates });
+  }, [updateTaskMutation]);
 
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [waitingTaskId, setWaitingTaskId] = useState<string | null>(null);
@@ -55,18 +68,18 @@ export default function PlanPage() {
     [activeProjectFilter]
   );
 
-  const inboxTasks = useMemo(() => filterTasks(getTasksByStatus('inbox')), [filterTasks, getTasksByStatus]);
+  const inboxTasks = useMemo(() => filterTasks(allTasks.filter(t => t.status === 'inbox').sort((a, b) => a.sort_order - b.sort_order)), [filterTasks, allTasks]);
   const upcomingTasks = useMemo(
     () =>
-      filterTasks(getTasksByStatus('upcoming')).sort((a, b) => {
+      filterTasks(allTasks.filter(t => t.status === 'upcoming')).sort((a, b) => {
         if (!a.due_date) return 1;
         if (!b.due_date) return -1;
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
       }),
-    [filterTasks, getTasksByStatus]
+    [filterTasks, allTasks]
   );
-  const waitingTasks = useMemo(() => filterTasks(getTasksByStatus('waiting')), [filterTasks, getTasksByStatus]);
-  const somedayTasks = useMemo(() => filterTasks(getTasksByStatus('someday')), [filterTasks, getTasksByStatus]);
+  const waitingTasks = useMemo(() => filterTasks(allTasks.filter(t => t.status === 'waiting')), [filterTasks, allTasks]);
+  const somedayTasks = useMemo(() => filterTasks(allTasks.filter(t => t.status === 'someday')), [filterTasks, allTasks]);
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, task: Task) => {
@@ -79,8 +92,8 @@ export default function PlanPage() {
   const closeMenu = useCallback(() => setMenu(null), []);
 
   const handleRevive = useCallback(
-    (taskId: string) => updateTask(taskId, { updated_at: new Date().toISOString() }),
-    [updateTask]
+    (taskId: string) => updateTaskMutation.mutate({ id: taskId, updates: { updated_at: new Date().toISOString() } }),
+    [updateTaskMutation]
   );
 
   const getActions = (task: Task): ContextMenuAction[] => {
@@ -90,7 +103,7 @@ export default function PlanPage() {
       actions.push({
         label: 'Move to Today',
         icon: <IconArrowUp size={14} />,
-        onClick: () => updateTask(task.id, { status: 'today' }),
+        onClick: () => updateTaskMutation.mutate({ id: task.id, updates: { status: 'today' } }),
       });
     }
 
@@ -98,7 +111,7 @@ export default function PlanPage() {
       actions.push({
         label: 'Move to Someday',
         icon: <IconMoon size={14} />,
-        onClick: () => updateTask(task.id, { status: 'someday', due_date: null }),
+        onClick: () => updateTaskMutation.mutate({ id: task.id, updates: { status: 'someday', due_date: null } }),
       });
     }
 
@@ -113,20 +126,20 @@ export default function PlanPage() {
     actions.push({
       label: 'Complete',
       icon: <IconCheck size={14} />,
-      onClick: () => completeTask(task.id),
+      onClick: () => completeTaskMutation.mutate(task.id),
       separator: true,
     });
 
     actions.push({
       label: 'Let Go',
       icon: <IconMoon size={14} />,
-      onClick: () => letGoTask(task.id),
+      onClick: () => letGoTaskMutation.mutate(task.id),
     });
 
     actions.push({
       label: 'Delete',
       icon: <IconTrash size={14} />,
-      onClick: () => deleteTask(task.id),
+      onClick: () => deleteTaskMutation.mutate(task.id),
       variant: 'danger',
     });
 
@@ -154,7 +167,7 @@ export default function PlanPage() {
         }
         isDragTarget={dragTarget === 'inbox'}
         onDragOver={handleDragOver('inbox')}
-        onDrop={handleDrop('inbox', updateTask)}
+        onDrop={handleDrop('inbox', doUpdateTask)}
         onDragLeave={handleDragLeave('inbox')}
       >
         {inboxTasks.length === 0 ? (
@@ -184,7 +197,7 @@ export default function PlanPage() {
         count={upcomingTasks.length}
         isDragTarget={dragTarget === 'upcoming'}
         onDragOver={handleDragOver('upcoming')}
-        onDrop={handleDrop('upcoming', updateTask)}
+        onDrop={handleDrop('upcoming', doUpdateTask)}
         onDragLeave={handleDragLeave('upcoming')}
       >
         {upcomingTasks.length === 0 ? (
@@ -214,7 +227,7 @@ export default function PlanPage() {
         count={waitingTasks.length}
         isDragTarget={dragTarget === 'waiting'}
         onDragOver={handleDragOver('waiting')}
-        onDrop={handleDrop('waiting', updateTask)}
+        onDrop={handleDrop('waiting', doUpdateTask)}
         onDragLeave={handleDragLeave('waiting')}
       >
         {waitingTasks.length === 0 ? (
@@ -244,7 +257,7 @@ export default function PlanPage() {
         count={somedayTasks.length}
         isDragTarget={dragTarget === 'someday'}
         onDragOver={handleDragOver('someday')}
-        onDrop={handleDrop('someday', updateTask)}
+        onDrop={handleDrop('someday', doUpdateTask)}
         onDragLeave={handleDragLeave('someday')}
       >
         {somedayTasks.length === 0 ? (
@@ -260,11 +273,11 @@ export default function PlanPage() {
                 project={getProject(task.project_id)}
                 tags={getTagsForTask(task.id)}
                 variant="someday"
-                hasSubtasks={getSubtasks(task.id).length > 0}
+                hasSubtasks={getSubtasksForTask(task.id).length > 0}
                 draggable
                 onContextMenu={handleContextMenu}
                 onRevive={handleRevive}
-                onLetGo={letGoTask}
+                onLetGo={(id: string) => letGoTaskMutation.mutate(id)}
               />
             ))}
           </AnimatePresence>
@@ -289,7 +302,7 @@ export default function PlanPage() {
         onClose={() => { setWaitingTaskId(null); clearPendingWaiting(); }}
         onSubmit={(text) => {
           if (activeWaitingTaskId) {
-            updateTask(activeWaitingTaskId, { status: 'waiting', waiting_on: text });
+            updateTaskMutation.mutate({ id: activeWaitingTaskId, updates: { status: 'waiting', waiting_on: text } });
           }
           setWaitingTaskId(null);
           clearPendingWaiting();

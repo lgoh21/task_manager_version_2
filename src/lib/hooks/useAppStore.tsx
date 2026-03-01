@@ -17,6 +17,7 @@ interface AppStore {
   captureModalOpen: boolean;
   captureModalTitle: string;
   theme: ThemeMode;
+  userEmail: string | null;
   selectTask: (id: string | null) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -26,6 +27,7 @@ interface AppStore {
   openCaptureModal: (title: string) => void;
   closeCaptureModal: () => void;
   toggleTheme: () => void;
+  setUserEmail: (email: string | null) => void;
 }
 
 const AppStoreContext = createContext<AppStore | null>(null);
@@ -39,6 +41,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [captureModalTitle, setCaptureModalTitle] = useState('');
   const [theme, setThemeState] = useState<ThemeMode>('light');
+  const [userEmail, setUserEmailState] = useState<string | null>(null);
 
   // Sync theme with DOM and localStorage
   useEffect(() => {
@@ -88,6 +91,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setCaptureModalTitle('');
   }, []);
 
+  const setUserEmail = useCallback((email: string | null) => {
+    setUserEmailState(email);
+  }, []);
+
   return (
     <AppStoreContext.Provider
       value={{
@@ -99,6 +106,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         captureModalOpen,
         captureModalTitle,
         theme,
+        userEmail,
         selectTask,
         toggleSidebar,
         setSidebarCollapsed,
@@ -108,6 +116,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         openCaptureModal,
         closeCaptureModal,
         toggleTheme,
+        setUserEmail,
       }}
     >
       {children}

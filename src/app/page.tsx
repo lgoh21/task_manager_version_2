@@ -1,5 +1,13 @@
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
-export default function Home() {
-  redirect('/today');
+export default async function Home() {
+  const supabase = createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect('/today');
+  } else {
+    redirect('/auth/login');
+  }
 }
