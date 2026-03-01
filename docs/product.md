@@ -94,7 +94,6 @@ Every task has the following fields:
 - Subtasks are reorderable via drag.
 - Completing all subtasks does **not** auto-complete the parent task.
 - Placeholder text on first subtask slot: *"What's the first step?"*
-- Subtle hint below empty subtask list: *"Breaking it down makes it easier to start"*
 - If a task accumulates more than ~10 subtasks, a gentle visual cue suggests it might be better as multiple tasks. No hard enforcement — just a subtle indicator.
 
 ### 2.4 Projects
@@ -320,7 +319,6 @@ Slides in from the right when any task is clicked. **Identical panel regardless 
    - Free-text area with **live markdown rendering**. As the user types, markdown renders inline (bold appears bold, links become clickable, bullets format properly).
    - Auto-saves after brief debounce. No save button.
    - Placeholder: *"Add context, links, thoughts..."*
-   - First time opening a newly captured task, a subtle dismissible line appears above the notes field: *"Got 2 minutes? Add some context while it's fresh."* Disappears once the user adds content or dismisses it.
 
 5. **Subtasks**
    - Checklist with checkboxes
@@ -414,34 +412,30 @@ When a task is marked Done:
 
 ### 5.5 First Step Nudge
 
-When a task has **no subtasks and no notes content** after a few days in Someday:
+When a task in Someday has **no subtasks and no notes content**:
 
-- A subtle visual indicator appears on the task in list views (e.g. a faint dotted outline or muted icon).
+- A subtle visual indicator appears on the task in list views (a dashed left border).
 - Signals "this task might need breaking down" without text or interruption.
 - In the detail panel, the subtask placeholder always reads *"What's the first step?"*
 
 **Passive, not active.** No notification, no modal.
 
-### 5.6 Capture Context Nudge
-
-When a user captures a new task via the capture bar and the detail panel opens:
-
-- A subtle, dismissible line appears at the top of the detail panel: *"Got 2 minutes? Add some context while it's fresh."*
-- Disappears permanently for that task once the user adds any content or dismisses it.
-- One-time nudge per task.
-
 ---
 
-## 6. Capture Bar
+## 6. Capture Bar & Capture Modal
 
 Always visible at the top of the app across all views.
 
 - Single text input field with "+" icon and placeholder: *"Capture a task..."*
-- Type a title, press Enter → task is created in **Inbox** (within Plan view)
-- The detail panel opens immediately for the new task, with the context nudge (§5.6)
-- If the user just presses Enter and navigates away, the task lives in Inbox with just a title. That's valid.
+- Type a title, press Enter → opens a **Capture Modal** with:
+  - Editable title (pre-filled from capture bar)
+  - Optional notes field
+  - Size picker (S/M/L, defaults to M)
+  - Project picker
+  - Two actions: **"Send to Inbox"** or **"Add to Today"**
+- Escape or click-outside closes the modal without creating anything
 - **Keyboard shortcut:** ⌘N focuses the capture bar from anywhere
-- **Target: under 2 seconds from thought to captured task.**
+- **Cmd/Ctrl+Enter** in the modal sends to Inbox
 
 ---
 
@@ -507,7 +501,6 @@ Additional shortcuts can be added post-MVP based on usage patterns.
 - Completion celebration (toast + animation)
 - Done-today counter
 - First step nudge (placeholder text + visual cue)
-- Capture context nudge
 - Projects (create, colour, archive, filter via sidebar)
 - Tags (freeform, filter)
 - Notes view (append-only journal with live markdown, note-to-task conversion)
@@ -541,7 +534,7 @@ For whoever builds this:
 4. **Earn every field.** If a field can be optional, it must be. If a field isn't used by most tasks, question whether it should exist.
 5. **Empty is calm.** An empty Today view is not a problem — it's an invitation to plan.
 6. **Celebrate, don't punish.** Show what was accomplished (done counter, toast, animation). Never show what wasn't (no overdue badges, no missed counts, no broken streaks).
-7. **The capture bar is sacred.** Under 2 seconds from thought to captured task. Never add required fields. Never put capture behind a modal.
+7. **The capture bar is sacred.** Under 2 seconds from thought to captured task. Never add required fields. The capture modal lets you optionally add context, but all fields are optional — just a title is enough.
 8. **Respect the backlog.** Someday is not a graveyard. Decay keeps it honest. If a task is there, it should still be wanted.
 9. **One way to do each thing.** Don't offer three ways to move a task to Today. Context menu and drag. That's it.
 10. **The detail panel is the workhorse.** Everything about a task lives in one place. It should feel like opening a focused workspace for that single task.

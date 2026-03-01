@@ -1,6 +1,14 @@
 # CLAUDE.md — Tempus Development Guide
 
-Read `feature_spec.md` for product behaviour. Read `tech_spec.md` for stack and data model.
+Read `docs/product.md` for product behaviour. Read `docs/architecture.md` for stack and data model. Read `BACKLOG.md` for current work items.
+
+## Backlog Workflow
+
+- Before starting work, check `BACKLOG.md` for context on what's planned
+- When starting a backlog item, move it to **In Progress**
+- When finishing, move it to **Done** with the branch name
+- If new work is discovered during implementation, add it to the appropriate section
+- Each backlog item should be done on its own branch
 
 ## Quick Start
 
@@ -172,5 +180,5 @@ Task status changes go through `useUpdateTask` mutation. Convenience hooks exist
 ### When in doubt
 - Favour composition over configuration
 - Favour explicit props over implicit context
-- Keep `feature_spec.md` as the source of truth for product behaviour
+- Keep `docs/product.md` as the source of truth for product behaviour
 - Run `npm run build` to verify TypeScript + ESLint before finishing

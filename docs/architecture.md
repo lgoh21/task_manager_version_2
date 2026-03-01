@@ -1,4 +1,4 @@
-# Tempus — Tech Spec
+# Tempus — Architecture
 
 **Stack:** Next.js 14 (App Router) + Supabase + Framer Motion + Vercel
 **Last updated:** 1 Mar 2026
@@ -28,14 +28,14 @@ tempus/
 │   │   │   ├── plan/           # Plan view
 │   │   │   ├── notes/          # Notes view
 │   │   │   ├── history/        # History view
+│   │   │   ├── settings/       # Theme, behaviour config, account/logout
 │   │   │   └── layout.tsx      # App shell (sidebar + top bar + detail panel)
 │   │   ├── auth/               # Login/signup
 │   │   └── layout.tsx          # Root layout
 │   ├── components/
 │   │   ├── ui/                 # Generic reusable (Button, Input, Badge, Toast)
 │   │   ├── tasks/              # Task-specific (TaskRow, TaskDetail, SubtaskList, CaptureBar)
-│   │   ├── layout/             # App shell (Sidebar, TopBar, DetailPanel)
-│   │   └── animations/         # Framer Motion wrappers (CompletionAnimation, SlidePanel, DecayFade)
+│   │   └── layout/             # App shell (Sidebar, TopBar, DetailPanel)
 │   ├── lib/
 │   │   ├── api/                # Supabase CRUD (raw DB operations per table)
 │   │   ├── hooks/
@@ -53,7 +53,11 @@ tempus/
 │   └── migrations/             # Database migrations
 ├── public/
 ├── .env.local                  # Supabase keys
-└── FEATURE_SPEC.md             # The feature spec (lives in repo)
+├── docs/
+│   ├── product.md              # Product spec (features, views, behaviours)
+│   └── architecture.md         # This file
+├── CLAUDE.md                   # Development guide for Claude Code
+└── BACKLOG.md                  # Work items and priorities
 ```
 
 ---
@@ -149,10 +153,10 @@ export const HEAVY_DAY = {
 
 export const TOAST_DURATION_MS = 2500;
 export const MAX_PROJECTS = 7;
-export const SCRATCHPAD_DEBOUNCE_MS = 500;
+export const NOTES_DEBOUNCE_MS = 500;
 ```
 
-**`config/animations.ts`** — Framer Motion variants for completion, panel slide, decay fade, list reorder. Centralised so animation feel can be tuned in one place.
+**`config/animations.ts`** — Framer Motion exported variants and transitions (spring, smooth, gentle). Used directly by components via import — no wrapper components. Centralised so animation feel can be tuned in one place.
 
 ---
 
@@ -204,4 +208,4 @@ Supabase Auth with email/password. Session managed via `@supabase/ssr` cookies.
 - Error handling patterns (standard Next.js patterns)
 - Testing strategy (add post-MVP)
 
-Refer to **FEATURE_SPEC.md** for all product behaviour, view layouts, smart behaviours, and interaction patterns.
+Refer to **docs/product.md** for all product behaviour, view layouts, smart behaviours, and interaction patterns.
