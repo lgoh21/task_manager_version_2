@@ -100,3 +100,20 @@ export function formatTimestamp(dateStr: string): string {
     minute: '2-digit',
   });
 }
+
+/** Format a date for history display (date only, no time) */
+export function formatDateOnly(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+
+  if (isSameDay(date, now)) return 'Today';
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (isSameDay(date, yesterday)) return 'Yesterday';
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}

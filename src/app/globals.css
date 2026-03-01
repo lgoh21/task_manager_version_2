@@ -65,44 +65,65 @@
 
   /* Markdown rendered content */
   .prose-notes {
-    @apply text-sm leading-relaxed;
+    @apply text-sm leading-relaxed text-foreground;
   }
 
   .prose-notes p {
-    @apply mb-2;
+    @apply mb-3 last:mb-0;
   }
 
   .prose-notes a {
-    @apply text-accent underline underline-offset-2;
+    @apply text-accent underline underline-offset-2 transition-opacity;
   }
 
-  .prose-notes ul,
+  .prose-notes a:hover {
+    opacity: 0.8;
+  }
+
+  .prose-notes ul {
+    @apply pl-5 mb-3 list-disc;
+  }
+
   .prose-notes ol {
-    @apply pl-5 mb-2;
+    @apply pl-5 mb-3 list-decimal;
   }
 
   .prose-notes li {
-    @apply mb-1;
+    @apply mb-1.5;
   }
 
   .prose-notes code {
     @apply bg-muted px-1.5 py-0.5 rounded text-xs font-mono;
+    color: var(--color-foreground);
+    opacity: 0.9;
   }
 
   .prose-notes pre {
-    @apply bg-muted p-3 rounded-lg mb-2 overflow-x-auto;
+    @apply bg-muted p-4 rounded-lg mb-3 overflow-x-auto border border-border;
   }
 
   .prose-notes pre code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent p-0 border-0;
   }
 
   .prose-notes strong {
-    @apply font-semibold;
+    @apply font-semibold text-foreground;
+  }
+
+  .prose-notes em {
+    @apply italic;
   }
 
   .prose-notes blockquote {
-    @apply border-l-2 border-subtle pl-3 italic text-muted-foreground;
+    @apply border-l-2 border-subtle pl-4 py-1 italic text-muted-foreground my-3;
+  }
+
+  .prose-notes h1, .prose-notes h2, .prose-notes h3 {
+    @apply font-semibold text-foreground mt-4 mb-2;
+  }
+
+  .prose-notes hr {
+    @apply border-border my-4;
   }
 }
 

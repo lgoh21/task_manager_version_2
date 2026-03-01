@@ -11,11 +11,17 @@ interface AppStore {
   sidebarCollapsed: boolean;
   activeProjectFilter: string | null;
   doneTodayCount: number;
+  searchOpen: boolean;
+  captureModalOpen: boolean;
+  captureModalTitle: string;
   selectTask: (id: string | null) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setActiveProjectFilter: (projectId: string | null) => void;
   incrementDoneToday: () => void;
+  setSearchOpen: (open: boolean) => void;
+  openCaptureModal: (title: string) => void;
+  closeCaptureModal: () => void;
 }
 
 const AppStoreContext = createContext<AppStore | null>(null);
@@ -25,6 +31,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsedState] = useState(false);
   const [activeProjectFilter, setActiveProjectFilter] = useState<string | null>(null);
   const [doneTodayCount, setDoneTodayCount] = useState(0);
+  const [searchOpen, setSearchOpenState] = useState(false);
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [captureModalTitle, setCaptureModalTitle] = useState('');
 
   const selectTask = useCallback((id: string | null) => {
     setSelectedTaskId(id);
@@ -42,6 +51,20 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setDoneTodayCount((prev) => prev + 1);
   }, []);
 
+  const setSearchOpen = useCallback((open: boolean) => {
+    setSearchOpenState(open);
+  }, []);
+
+  const openCaptureModal = useCallback((title: string) => {
+    setCaptureModalTitle(title);
+    setCaptureModalOpen(true);
+  }, []);
+
+  const closeCaptureModal = useCallback(() => {
+    setCaptureModalOpen(false);
+    setCaptureModalTitle('');
+  }, []);
+
   return (
     <AppStoreContext.Provider
       value={{
@@ -49,11 +72,17 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         sidebarCollapsed,
         activeProjectFilter,
         doneTodayCount,
+        searchOpen,
+        captureModalOpen,
+        captureModalTitle,
         selectTask,
         toggleSidebar,
         setSidebarCollapsed,
         setActiveProjectFilter,
         incrementDoneToday,
+        setSearchOpen,
+        openCaptureModal,
+        closeCaptureModal,
       }}
     >
       {children}

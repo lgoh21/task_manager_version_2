@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useAppStore } from '@/lib/hooks/useAppStore';
 import { useTaskStore } from '@/lib/hooks/useTaskStore';
 import { sidebarVariants } from '@/config/animations';
+import { SidebarProjects } from '@/components/layout/SidebarProjects';
 import {
   IconToday,
   IconPlan,
@@ -22,11 +23,10 @@ const secondaryItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarCollapsed, toggleSidebar, setActiveProjectFilter, activeProjectFilter } = useAppStore();
-  const { getTasksByStatus, projects } = useTaskStore();
+  const { sidebarCollapsed, toggleSidebar } = useAppStore();
+  const { getTasksByStatus } = useTaskStore();
 
   const inboxCount = getTasksByStatus('inbox').length;
-  const activeProjects = projects.filter((p) => !p.archived);
 
   return (
     <motion.aside
@@ -56,36 +56,7 @@ export function Sidebar() {
         <NavItem href="/plan" label="Plan" icon={IconPlan} active={pathname === '/plan'} collapsed={sidebarCollapsed} badge={inboxCount} />
 
         {/* Projects section */}
-        {!sidebarCollapsed && activeProjects.length > 0 && (
-          <div className="pt-5 pb-1">
-            <span className="px-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted">
-              Projects
-            </span>
-            <div className="mt-1.5 space-y-0.5">
-              {activeProjects.map((project) => (
-                <button
-                  key={project.id}
-                  onClick={() =>
-                    setActiveProjectFilter(
-                      activeProjectFilter === project.id ? null : project.id
-                    )
-                  }
-                  className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors ${
-                    activeProjectFilter === project.id
-                      ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                  }`}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: project.colour }}
-                  />
-                  <span className="truncate">{project.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {!sidebarCollapsed && <SidebarProjects />}
 
         {/* Spacer */}
         <div className="flex-1" />

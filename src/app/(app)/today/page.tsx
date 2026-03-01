@@ -1,17 +1,40 @@
 'use client';
 
+import { useMemo, useState, useCallback } from 'react';
 import { AnimatePresence, Reorder } from 'framer-motion';
 import { useTaskStore } from '@/lib/hooks/useTaskStore';
+import { useAppStore } from '@/lib/hooks/useAppStore';
 import { isHeavyDay } from '@/lib/utils/tasks';
 import { isThisWeek } from '@/lib/utils/dates';
 import { TaskRow } from '@/components/tasks/TaskRow';
 import { TodayEmptyState } from '@/components/tasks/TodayEmptyState';
+import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
 import { Badge } from '@/components/ui/Badge';
+import {
+  IconMoon,
+  IconPause,
+  IconCheck,
+  IconTrash,
+} from '@/components/ui/Icons';
+import type { Task } from '@/types';
+
+interface MenuState {
+  x: number;
+  y: number;
+  task: Task;
+}
 
 export default function TodayPage() {
-  const { getTasksByStatus, updateTask, projects, getProject } = useTaskStore();
+  const { getTasksByStatus, updateTask, deleteTask, completeTask, letGoTask, projects, getProject } = useTaskStore();
+  const { activeProjectFilter, incrementDoneToday } = useAppStore();
 
-  const todayTasks = getTasksByStatus('today');
+  const allTodayTasks = getTasksByStatus('today');
+  const todayTasks = useMemo(
+    () => activeProjectFilter
+      ? allTodayTasks.filter((t) => t.project_id === activeProjectFilter)
+      : allTodayTasks,
+    [allTodayTasks, activeProjectFilter]
+  );
   const inboxTasks = getTasksByStatus('inbox');
   const somedayTasks = getTasksByStatus('someday');
   const upcomingTasks = getTasksByStatus('upcoming');
@@ -20,8 +43,10 @@ export default function TodayPage() {
     (t) => t.due_date && isThisWeek(t.due_date)
   );
 
+  const [menu, setMenu] = useState<MenuState | null>(null);
+
   const heavyDay = isHeavyDay(todayTasks);
-  const isEmpty = todayTasks.length === 0;
+  const isEmpty = todayTasks.length === 0 && !activeProjectFilter;
 
   const handleAddToToday = (taskId: string) => {
     updateTask(taskId, { status: 'today', sort_order: todayTasks.length });
@@ -35,6 +60,50 @@ export default function TodayPage() {
     });
   };
 
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, task: Task) => {
+      e.preventDefault();
+      setMenu({ x: e.clientX, y: e.clientY, task });
+    },
+    []
+  );
+
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  const getActions = (task: Task): ContextMenuAction[] => [
+    {
+      label: 'Waiting On...',
+      icon: <IconPause size={14} />,
+      onClick: () => {
+        const who = window.prompt('Who or what is blocking this task?');
+        if (who) {
+          updateTask(task.id, { status: 'waiting', waiting_on: who });
+        }
+      },
+    },
+    {
+      label: 'Move to Someday',
+      icon: <IconMoon size={14} />,
+      onClick: () => updateTask(task.id, { status: 'someday', due_date: null }),
+    },
+    {
+      label: 'Complete',
+      icon: <IconCheck size={14} />,
+      onClick: () => { completeTask(task.id); incrementDoneToday(); },
+      separator: true,
+    },
+    {
+      label: 'Let Go',
+      icon: <IconMoon size={14} />,
+      onClick: () => letGoTask(task.id),
+    },
+    {
+      label: 'Delete',
+      icon: <IconTrash size={14} />,
+      onClick: () => deleteTask(task.id),
+      variant: 'danger',
+    },
+  ];
 
   return (
     <div className="p-4">
@@ -83,6 +152,7 @@ export default function TodayPage() {
                     task={task}
                     project={getProject(task.project_id)}
                     variant="today"
+                    onContextMenu={handleContextMenu}
                   />
                 </Reorder.Item>
               ))}
@@ -90,6 +160,17 @@ export default function TodayPage() {
           </Reorder.Group>
         </div>
       )}
+      {/* Context menu */}
+      <AnimatePresence>
+        {menu && (
+          <ContextMenu
+            x={menu.x}
+            y={menu.y}
+            actions={getActions(menu.task)}
+            onClose={closeMenu}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
