@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useAppStore } from '@/lib/hooks/useAppStore';
 import { DetailPanel } from '@/components/layout/DetailPanel';
 
 // Routes where the detail panel should not appear
@@ -8,7 +10,17 @@ const FULL_WIDTH_ROUTES = ['/notes', '/history', '/settings'];
 
 export function ContentArea({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { selectTask } = useAppStore();
+  const prevPathname = useRef(pathname);
   const showDetailPanel = !FULL_WIDTH_ROUTES.some((r) => pathname.startsWith(r));
+
+  // Clear task selection when navigating between routes
+  useEffect(() => {
+    if (prevPathname.current !== pathname) {
+      selectTask(null);
+      prevPathname.current = pathname;
+    }
+  }, [pathname, selectTask]);
 
   return (
     <div className="flex-1 flex overflow-hidden">

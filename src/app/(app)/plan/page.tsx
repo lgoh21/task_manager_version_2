@@ -37,7 +37,7 @@ export default function PlanPage() {
   const deleteTaskMutation = useDeleteTask();
   const completeTaskMutation = useCompleteTask();
   const letGoTaskMutation = useLetGoTask();
-  const { activeProjectFilter } = useAppStore();
+  const { activeProjectFilter, selectedTaskId, selectTask } = useAppStore();
   const { dragTarget, pendingWaitingTaskId, clearPendingWaiting, handleDragOver, handleDragLeave, handleDrop } = usePlanDrag();
 
   const getProject = useCallback((id: string | null) => projects.find(p => p.id === id) ?? null, [projects]);
@@ -94,6 +94,11 @@ export default function PlanPage() {
   const handleRevive = useCallback(
     (taskId: string) => updateTaskMutation.mutate({ id: taskId, updates: { updated_at: new Date().toISOString() } }),
     [updateTaskMutation]
+  );
+
+  const handleLetGo = useCallback(
+    (id: string) => letGoTaskMutation.mutate(id),
+    [letGoTaskMutation]
   );
 
   const getActions = (task: Task): ContextMenuAction[] => {
@@ -175,7 +180,7 @@ export default function PlanPage() {
             No tasks in inbox
           </p>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {inboxTasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -183,6 +188,9 @@ export default function PlanPage() {
                 project={getProject(task.project_id)}
                 tags={getTagsForTask(task.id)}
                 variant="inbox"
+                isSelected={selectedTaskId === task.id}
+                hasSelection={!!selectedTaskId}
+                onSelect={selectTask}
                 draggable
                 onContextMenu={handleContextMenu}
               />
@@ -205,7 +213,7 @@ export default function PlanPage() {
             No upcoming tasks
           </p>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {upcomingTasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -213,6 +221,9 @@ export default function PlanPage() {
                 project={getProject(task.project_id)}
                 tags={getTagsForTask(task.id)}
                 variant="upcoming"
+                isSelected={selectedTaskId === task.id}
+                hasSelection={!!selectedTaskId}
+                onSelect={selectTask}
                 draggable
                 onContextMenu={handleContextMenu}
               />
@@ -235,7 +246,7 @@ export default function PlanPage() {
             No blocked tasks
           </p>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {waitingTasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -243,6 +254,9 @@ export default function PlanPage() {
                 project={getProject(task.project_id)}
                 tags={getTagsForTask(task.id)}
                 variant="waiting"
+                isSelected={selectedTaskId === task.id}
+                hasSelection={!!selectedTaskId}
+                onSelect={selectTask}
                 draggable
                 onContextMenu={handleContextMenu}
               />
@@ -265,7 +279,7 @@ export default function PlanPage() {
             No someday tasks
           </p>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {somedayTasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -273,11 +287,14 @@ export default function PlanPage() {
                 project={getProject(task.project_id)}
                 tags={getTagsForTask(task.id)}
                 variant="someday"
+                isSelected={selectedTaskId === task.id}
+                hasSelection={!!selectedTaskId}
+                onSelect={selectTask}
                 hasSubtasks={getSubtasksForTask(task.id).length > 0}
                 draggable
                 onContextMenu={handleContextMenu}
                 onRevive={handleRevive}
-                onLetGo={(id: string) => letGoTaskMutation.mutate(id)}
+                onLetGo={handleLetGo}
               />
             ))}
           </AnimatePresence>

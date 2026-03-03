@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { taskRowVariants } from '@/config/animations';
-import { useAppStore } from '@/lib/hooks/useAppStore';
 import { getDecayOpacity, getDecayLabel, getDecayStage } from '@/lib/utils/decay';
 import { getCarriedForwardLabel } from '@/lib/utils/carriedForward';
 import { formatDueDate } from '@/lib/utils/dates';
@@ -14,6 +13,9 @@ interface TaskRowProps {
   project?: Project | null;
   tags?: Tag[];
   variant?: 'today' | 'plan' | 'someday' | 'waiting' | 'upcoming' | 'inbox' | 'history';
+  isSelected?: boolean;
+  hasSelection?: boolean;
+  onSelect?: (taskId: string) => void;
   hasSubtasks?: boolean;
   draggable?: boolean;
   onContextMenu?: (e: React.MouseEvent, task: Task) => void;
@@ -21,12 +23,11 @@ interface TaskRowProps {
   onLetGo?: (taskId: string) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, draggable: isDraggable, onContextMenu, onRevive, onLetGo }: TaskRowProps) {
-  const { selectedTaskId, selectTask } = useAppStore();
+export const TaskRow = memo(function TaskRow({
+  task, project, variant = 'today', isSelected, hasSelection,
+  onSelect, hasSubtasks, draggable: isDraggable, onContextMenu, onRevive, onLetGo,
+}: TaskRowProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const isSelected = selectedTaskId === task.id;
-  const hasSelection = selectedTaskId !== null;
   const decayOpacity = variant === 'someday' ? getDecayOpacity(task.updated_at) : 1;
   const decayLabel = variant === 'someday' ? getDecayLabel(task.updated_at) : null;
   const isFullyDecayed = variant === 'someday' && getDecayStage(task.updated_at) === 'fully_decayed';
@@ -35,7 +36,7 @@ export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, d
   const showNudge = variant === 'someday' && !hasSubtasks && !task.notes;
 
   const rowOpacity = hasSelection && !isSelected
-    ? Math.min(decayOpacity, 0.45)
+    ? Math.min(decayOpacity, 0.75)
     : decayOpacity;
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -52,8 +53,7 @@ export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, d
       initial="initial"
       animate={{ opacity: isDragging ? 0.5 : rowOpacity, y: 0 }}
       exit="exit"
-      layout
-      onClick={() => selectTask(task.id)}
+      onClick={() => onSelect?.(task.id)}
       onContextMenu={(e) => onContextMenu?.(e, task)}
       className={`task-row flex-col !items-stretch gap-1 ${
         isDraggable ? '!cursor-grab active:!cursor-grabbing' : ''
@@ -63,7 +63,7 @@ export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, d
         <span className="font-ui text-sm leading-snug flex-1 min-w-0 truncate">
           {task.title}
         </span>
-        {variant === 'upcoming' && task.due_date && (
+        {task.due_date && (
           <span className="font-mono text-[11.5px] text-muted-foreground shrink-0">
             {formatDueDate(task.due_date)}
           </span>
@@ -108,7 +108,7 @@ export function TaskRow({ task, project, tags, variant = 'today', hasSubtasks, d
   }
 
   return inner;
-}
+});
 
 /** Inline Revive / Let Go buttons for fully-decayed someday tasks */
 function DecayActions({

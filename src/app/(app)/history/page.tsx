@@ -124,7 +124,7 @@ export default function HistoryPage() {
                 : 'No let-go tasks yet.'}
           </p>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {filtered.map((task) => (
               <HistoryEntry
                 key={task.id}

@@ -35,7 +35,7 @@ export default function TodayPage() {
   const deleteTaskMutation = useDeleteTask();
   const completeTaskMutation = useCompleteTask();
   const letGoTaskMutation = useLetGoTask();
-  const { activeProjectFilter } = useAppStore();
+  const { activeProjectFilter, selectedTaskId, selectTask } = useAppStore();
 
   const getTagsForTask = useCallback((taskId: string) => {
     const tagIds = allTaskTags.filter(tt => tt.task_id === taskId).map(tt => tt.tag_id);
@@ -157,7 +157,7 @@ export default function TodayPage() {
             onReorder={handleReorder}
             className=""
           >
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {todayTasks.map((task) => (
                 <Reorder.Item
                   key={task.id}
@@ -169,6 +169,9 @@ export default function TodayPage() {
                     project={projects.find(p => p.id === task.project_id) ?? null}
                     tags={getTagsForTask(task.id)}
                     variant="today"
+                    isSelected={selectedTaskId === task.id}
+                    hasSelection={!!selectedTaskId}
+                    onSelect={selectTask}
                     onContextMenu={handleContextMenu}
                   />
                 </Reorder.Item>
