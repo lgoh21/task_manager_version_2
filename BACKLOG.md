@@ -6,9 +6,6 @@
 
 ## Performance
 
-- [ ] **Tab switch latency** — Switching between Today/Plan/History feels slow. React Query cache IS shared (`useAllTasks` uses the same `['tasks']` key everywhere, `staleTime: 2min`), so this is not a data-fetching issue. Likely caused by component unmount/remount overhead on navigation and Framer Motion AnimatePresence/layout animations firing on every mount. Investigate: profile with React DevTools, consider keeping page components mounted or reducing animation on repeat visits.
-- [ ] **General rendering lag** — The app loads all data upfront (all tasks, projects, tags, task_tags) which is correct for a personal app. Lag is likely rendering overhead — every page re-runs hooks, useMemo filters, and AnimatePresence on mount. Investigate: React DevTools profiler to identify expensive re-renders, memoization gaps, or animation bottlenecks.
-
 ## Up Next
 
 - [ ] **Detail panel slide-from-right** — Right now the detail panel just fades in/out. Wire up `detailPanelVariants` from `animations.ts` so it slides in from the right edge with spring physics (like a drawer), and slides back off-screen on close. Files: `DetailPanel.tsx`, `animations.ts`
@@ -16,9 +13,6 @@
 - [ ] **Staggered list entry** — All tasks appear at the exact same instant on load. Wire up `staggerContainer` from `animations.ts` so tasks cascade in top-to-bottom with 40ms delay between each. Only run on initial mount — not on re-renders or tab switches, to avoid feeling sluggish on repeat visits. Affects Today, Plan sections, History. Files: `today/page.tsx`, `plan/page.tsx`, `history/page.tsx`, `animations.ts`
 - [ ] **Animate instant-appearing dropdowns** — Several menus pop in/out with zero animation: TaskActions "More" menu, size picker in TaskDetailMeta, tag autocomplete in TagInput, subtask add/delete in SubtaskList. Add scale+opacity animation matching the existing ContextMenu pattern (100ms). Files: `TaskActions.tsx`, `TaskDetailMeta.tsx`, `TagInput.tsx`, `SubtaskList.tsx`
 - [ ] **TodayEmptyState fade** — The planning prompt appears/disappears with a hard cut when the Today list empties or fills. Add a fade transition using `fadeInVariants` from `animations.ts`. Files: `TodayEmptyState.tsx`, `today/page.tsx`
-- [ ] **Due date on Today task rows** — Due date is only shown on `variant === 'upcoming'` rows. Show it inline on Today rows too (subtle, same style). Files: `TaskRow.tsx`
-- [ ] **Clear task selection on nav switch** — `selectedTaskId` persists across navigation, leaving the detail panel open when switching views. Call `selectTask(null)` on route change to close the panel and deselect. Files: `useAppStore.tsx`, `app/(app)/layout.tsx` or individual page components
-- [ ] **Adjust task dimming when selected** — Unselected tasks fade to 0.45 opacity which hurts readability. Option A: raise to ~0.65. Option B: instead of fading others, emphasise the selected task (background highlight / left border accent) and leave others at full opacity. Leaning toward B. Files: `TaskRow.tsx`, possibly `globals.css`
 
 ## Later
 
@@ -44,3 +38,8 @@
 - [x] **Fix tag sharing bug** — Missing UPDATE RLS policy on `tags` and `task_tags` tables. Added policies in Supabase + improved optimistic update to reuse existing tag ID from cache. Branch: `fix/bugs-tags-counter-notes`
 - [x] **Fix done-today counter** — Counter was plain useState with no persistence. Refactored to derive count from `completed_at` field in task data — works from any page, survives refresh. Branch: `fix/bugs-tags-counter-notes`
 - [x] **Fix notes editing** — Missing UPDATE RLS policy on `notes` table. Added policy in Supabase. Branch: `fix/bugs-tags-counter-notes`
+- [x] **Fix tab switch latency** — Wrapped TaskRow in React.memo, extracted selection state from context to props, removed Framer Motion `layout` prop, added `initial={false}` to AnimatePresence blocks. Branch: `fix/ui-polish-and-perf`
+- [x] **Fix general rendering lag** — Same changes as tab switch — React.memo prevents 50+ TaskRow re-renders on selection change, stable callbacks on Plan page. Branch: `fix/ui-polish-and-perf`
+- [x] **Due date on task rows** — Due date now shows inline on any task row that has one, not just upcoming. Branch: `fix/ui-polish-and-perf`
+- [x] **Clear task selection on nav switch** — ContentArea clears selectedTaskId on pathname change. Branch: `fix/ui-polish-and-perf`
+- [x] **Adjust task dimming when selected** — Raised unselected task opacity floor from 0.45 to 0.75 for better readability. Branch: `fix/ui-polish-and-perf`
