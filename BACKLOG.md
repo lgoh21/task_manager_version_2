@@ -24,4 +24,5 @@
 
 ## Done
 
+- [x] **Sync specs and cleanup** — Moved specs to `docs/`, synced with codebase, removed capture context nudge, set up BACKLOG.md and backlog workflow. Branch: `chore/sync-specs-and-cleanup`
 - [x] **Fix AnimatePresence exit animations** — CaptureModal and SearchPalette returned null before AnimatePresence could run exit animations, causing modals to vanish instantly on close. Moved conditional inside AnimatePresence. Branch: `fix/animatepresence-exit-animations`
