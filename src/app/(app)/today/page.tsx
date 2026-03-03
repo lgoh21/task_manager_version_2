@@ -35,7 +35,7 @@ export default function TodayPage() {
   const deleteTaskMutation = useDeleteTask();
   const completeTaskMutation = useCompleteTask();
   const letGoTaskMutation = useLetGoTask();
-  const { activeProjectFilter, incrementDoneToday } = useAppStore();
+  const { activeProjectFilter } = useAppStore();
 
   const getTagsForTask = useCallback((taskId: string) => {
     const tagIds = allTaskTags.filter(tt => tt.task_id === taskId).map(tt => tt.tag_id);
@@ -103,7 +103,7 @@ export default function TodayPage() {
     {
       label: 'Complete',
       icon: <IconCheck size={14} />,
-      onClick: () => { completeTaskMutation.mutate(task.id); incrementDoneToday(); },
+      onClick: () => completeTaskMutation.mutate(task.id),
       separator: true,
     },
     {
