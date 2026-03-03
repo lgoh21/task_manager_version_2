@@ -15,7 +15,7 @@ import { TaskActions } from '@/components/tasks/TaskActions';
 import type { TaskSize } from '@/types';
 
 export function DetailPanel() {
-  const { selectedTaskId, selectTask, incrementDoneToday } = useAppStore();
+  const { selectedTaskId, selectTask } = useAppStore();
   const { showToast } = useToast();
 
   const { data: allTasks = [] } = useAllTasks();
@@ -40,7 +40,6 @@ export function DetailPanel() {
   const handleComplete = () => {
     if (!task) return;
     completeTaskMutation.mutate(task.id);
-    incrementDoneToday();
     showToast(`${task.title.length > 30 ? task.title.slice(0, 30) + '...' : task.title} done`);
     selectTask(null);
   };

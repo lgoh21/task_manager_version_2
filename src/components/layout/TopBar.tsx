@@ -1,13 +1,23 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useAppStore } from '@/lib/hooks/useAppStore';
+import { useAllTasks } from '@/lib/hooks/queries/useTasks';
 import { CaptureBar } from '@/components/tasks/CaptureBar';
 import { Badge } from '@/components/ui/Badge';
 import { MoonPhaseIcon } from '@/components/ui/MoonPhaseIcon';
 import { IconSearch } from '@/components/ui/Icons';
 
 export function TopBar() {
-  const { doneTodayCount, theme, setSearchOpen, openCaptureModal, toggleTheme } = useAppStore();
+  const { theme, setSearchOpen, openCaptureModal, toggleTheme } = useAppStore();
+  const { data: allTasks = [] } = useAllTasks();
+
+  const doneTodayCount = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    return allTasks.filter(
+      (t) => t.status === 'done' && t.completed_at && new Date(t.completed_at).toDateString() === todayStr
+    ).length;
+  }, [allTasks]);
 
   const handleCapture = (title: string) => {
     openCaptureModal(title);

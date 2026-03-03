@@ -12,7 +12,6 @@ interface AppStore {
   selectedTaskId: string | null;
   sidebarCollapsed: boolean;
   activeProjectFilter: string | null;
-  doneTodayCount: number;
   searchOpen: boolean;
   captureModalOpen: boolean;
   captureModalTitle: string;
@@ -22,7 +21,6 @@ interface AppStore {
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setActiveProjectFilter: (projectId: string | null) => void;
-  incrementDoneToday: () => void;
   setSearchOpen: (open: boolean) => void;
   openCaptureModal: (title: string) => void;
   closeCaptureModal: () => void;
@@ -36,7 +34,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsedState] = useState(false);
   const [activeProjectFilter, setActiveProjectFilter] = useState<string | null>(null);
-  const [doneTodayCount, setDoneTodayCount] = useState(0);
   const [searchOpen, setSearchOpenState] = useState(false);
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [captureModalTitle, setCaptureModalTitle] = useState('');
@@ -73,10 +70,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     setSidebarCollapsedState(collapsed);
   }, []);
 
-  const incrementDoneToday = useCallback(() => {
-    setDoneTodayCount((prev) => prev + 1);
-  }, []);
-
   const setSearchOpen = useCallback((open: boolean) => {
     setSearchOpenState(open);
   }, []);
@@ -101,7 +94,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         selectedTaskId,
         sidebarCollapsed,
         activeProjectFilter,
-        doneTodayCount,
         searchOpen,
         captureModalOpen,
         captureModalTitle,
@@ -111,7 +103,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         toggleSidebar,
         setSidebarCollapsed,
         setActiveProjectFilter,
-        incrementDoneToday,
         setSearchOpen,
         openCaptureModal,
         closeCaptureModal,

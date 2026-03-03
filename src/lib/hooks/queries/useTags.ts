@@ -52,8 +52,10 @@ export function useAddTagToTask() {
         queryKeys.tags.byTask(taskId)
       );
 
-      // Optimistic: add a temp tag to the task's tags
-      const optimisticTag: Tag = {
+      // Reuse existing tag from cache if available, otherwise create temp
+      const allTags = queryClient.getQueryData<Tag[]>(queryKeys.tags.all);
+      const existingTag = allTags?.find((t) => t.name === normalized);
+      const optimisticTag: Tag = existingTag ?? {
         id: crypto.randomUUID(),
         name: normalized,
         user_id: userId,

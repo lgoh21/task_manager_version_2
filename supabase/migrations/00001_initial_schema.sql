@@ -159,6 +159,9 @@ create policy "Users can view own tags"
 create policy "Users can insert own tags"
   on tags for insert with check (auth.uid() = user_id);
 
+create policy "Users can update own tags"
+  on tags for update using (auth.uid() = user_id);
+
 create policy "Users can delete own tags"
   on tags for delete using (auth.uid() = user_id);
 
@@ -186,6 +189,12 @@ create policy "Users can insert own task_tags"
     select 1 from tasks where tasks.id = task_tags.task_id and tasks.user_id = auth.uid()
   ));
 
+create policy "Users can update own task_tags"
+  on task_tags for update
+  using (exists (
+    select 1 from tasks where tasks.id = task_tags.task_id and tasks.user_id = auth.uid()
+  ));
+
 create policy "Users can delete own task_tags"
   on task_tags for delete
   using (exists (
@@ -210,6 +219,9 @@ create policy "Users can view own notes"
 
 create policy "Users can insert own notes"
   on notes for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own notes"
+  on notes for update using (auth.uid() = user_id);
 
 create policy "Users can delete own notes"
   on notes for delete using (auth.uid() = user_id);
