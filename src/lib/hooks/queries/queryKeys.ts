@@ -14,6 +14,7 @@ export const queryKeys = {
   },
   notes: {
     all: ['notes'] as const,
+    byProject: (projectId: string) => ['notes', 'project', projectId] as const,
   },
   tags: {
     all: ['tags'] as const,

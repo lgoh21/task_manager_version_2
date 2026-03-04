@@ -36,7 +36,7 @@ export default function NotesPage() {
   const handleSave = useCallback(() => {
     const content = draft.trim();
     if (!content) return;
-    createNote.mutate(content);
+    createNote.mutate({ content });
     setDraft('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';

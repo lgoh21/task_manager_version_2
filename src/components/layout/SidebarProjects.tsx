@@ -11,7 +11,7 @@ import { theme } from '@/config/theme';
 import { MAX_PROJECTS } from '@/config/constants';
 
 export function SidebarProjects() {
-  const { activeProjectFilter, setActiveProjectFilter } = useAppStore();
+  const { activeProjectFilter, selectedProjectId, selectProject } = useAppStore();
   const { data: projects = [] } = useProjects();
   const createProject = useCreateProject();
   const updateProjectMutation = useUpdateProject();
@@ -78,8 +78,8 @@ export function SidebarProjects() {
           icon: <IconArchive size={14} />,
           onClick: () => {
             updateProjectMutation.mutate({ id: contextMenu.projectId, updates: { archived: true } });
-            if (activeProjectFilter === contextMenu.projectId) {
-              setActiveProjectFilter(null);
+            if (selectedProjectId === contextMenu.projectId) {
+              selectProject(null);
             }
           },
         },
@@ -144,13 +144,13 @@ export function SidebarProjects() {
           <button
             key={project.id}
             onClick={() =>
-              setActiveProjectFilter(
-                activeProjectFilter === project.id ? null : project.id
+              selectProject(
+                selectedProjectId === project.id ? null : project.id
               )
             }
             onContextMenu={(e) => handleContextMenu(e, project.id)}
             className={`font-ui w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13.5px] transition-all outline-none ${
-              activeProjectFilter === project.id
+              selectedProjectId === project.id
                 ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
                 : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
             }`}

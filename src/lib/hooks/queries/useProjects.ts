@@ -55,6 +55,9 @@ export function useCreateProject() {
         name,
         colour,
         archived: false,
+        description: null,
+        status: 'active',
+        finished_at: null,
         user_id: userId,
         created_at: new Date().toISOString(),
       };
@@ -88,7 +91,7 @@ export function useUpdateProject() {
       updates,
     }: {
       id: string;
-      updates: Partial<Pick<Project, 'name' | 'colour' | 'archived'>>;
+      updates: Partial<Pick<Project, 'name' | 'colour' | 'archived' | 'description' | 'status' | 'finished_at'>>;
     }) => api.updateProject(id, updates),
 
     onMutate: async ({ id, updates }) => {
@@ -98,6 +101,66 @@ export function useUpdateProject() {
       queryClient.setQueryData<Project[]>(
         queryKeys.projects.all,
         (old = []) => old.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+    },
+  });
+}
+
+export function useFinishProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.finishProject(id),
+
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects.all });
+      const previous = queryClient.getQueryData<Project[]>(queryKeys.projects.all);
+
+      queryClient.setQueryData<Project[]>(
+        queryKeys.projects.all,
+        (old = []) => old.map((p) => (p.id === id ? { ...p, status: 'finished' as const, finished_at: new Date().toISOString() } : p))
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+    },
+  });
+}
+
+export function useArchiveProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.archiveProject(id),
+
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects.all });
+      const previous = queryClient.getQueryData<Project[]>(queryKeys.projects.all);
+
+      queryClient.setQueryData<Project[]>(
+        queryKeys.projects.all,
+        (old = []) => old.map((p) => (p.id === id ? { ...p, status: 'archived' as const, archived: true } : p))
       );
 
       return { previous };

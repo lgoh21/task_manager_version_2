@@ -16,12 +16,15 @@ export async function fetchNotes(userId: string): Promise<Note[]> {
 
 export async function createNote(
   content: string,
-  userId: string
+  userId: string,
+  projectId?: string | null
 ): Promise<Note> {
   const supabase = createClient();
+  const insert: Record<string, unknown> = { content, user_id: userId };
+  if (projectId) insert.project_id = projectId;
   const { data, error } = await supabase
     .from('notes')
-    .insert({ content, user_id: userId })
+    .insert(insert)
     .select()
     .single();
   if (error) throw error;
@@ -50,4 +53,19 @@ export async function deleteNote(id: string): Promise<void> {
     .delete()
     .eq('id', id);
   if (error) throw error;
+}
+
+export async function updateNoteProject(
+  id: string,
+  projectId: string | null
+): Promise<Note> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('notes')
+    .update({ project_id: projectId })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }

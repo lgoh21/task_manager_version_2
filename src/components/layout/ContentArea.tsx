@@ -10,7 +10,7 @@ const FULL_WIDTH_ROUTES = ['/notes', '/history', '/settings'];
 
 export function ContentArea({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { selectTask } = useAppStore();
+  const { selectTask, selectProject } = useAppStore();
   const prevPathname = useRef(pathname);
   const showDetailPanel = !FULL_WIDTH_ROUTES.some((r) => pathname.startsWith(r));
 
@@ -18,9 +18,10 @@ export function ContentArea({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (prevPathname.current !== pathname) {
       selectTask(null);
+      selectProject(null);
       prevPathname.current = pathname;
     }
-  }, [pathname, selectTask]);
+  }, [pathname, selectTask, selectProject]);
 
   return (
     <div className="flex-1 flex overflow-hidden">
