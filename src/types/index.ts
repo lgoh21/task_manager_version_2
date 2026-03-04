@@ -136,6 +136,12 @@ export interface ActivityEntry {
   timestamp: string;
 }
 
+/** User settings (one row per user in user_settings table) */
+export interface UserSettings {
+  user_id: string;
+  max_projects: number;
+}
+
 /** UI state for the app shell */
 export interface AppUIState {
   selectedTaskId: string | null;

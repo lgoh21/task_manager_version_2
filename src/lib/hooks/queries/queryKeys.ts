@@ -23,6 +23,9 @@ export const queryKeys = {
   taskTags: {
     all: ['taskTags'] as const,
   },
+  settings: {
+    all: ['settings'] as const,
+  },
   auth: {
     userId: ['auth', 'userId'] as const,
   },

@@ -7,20 +7,21 @@ import { useProjects, useCreateProject, useUpdateProject } from '@/lib/hooks/que
 import { ContextMenu, type ContextMenuAction } from '@/components/ui/ContextMenu';
 import { ProjectEditModal } from '@/components/tasks/ProjectEditModal';
 import { IconPlus, IconArchive, IconSettings } from '@/components/ui/Icons';
+import { ColourPicker } from '@/components/ui/ColourPicker';
+import { useSettings } from '@/lib/hooks/queries/useSettings';
 import { theme } from '@/config/theme';
 import { MAX_PROJECTS } from '@/config/constants';
 
 export function SidebarProjects() {
   const { activeProjectFilter, selectedProjectId, selectProject } = useAppStore();
   const { data: projects = [] } = useProjects();
+  const { data: settings } = useSettings();
   const createProject = useCreateProject();
   const updateProjectMutation = useUpdateProject();
 
+  const maxProjects = settings?.max_projects ?? MAX_PROJECTS;
   const activeProjects = projects.filter((p) => !p.archived);
-  const atLimit = activeProjects.length >= MAX_PROJECTS;
-
-  const usedColours = new Set(activeProjects.map((p) => p.colour));
-  const availableColours = theme.projectColors.filter((c) => !usedColours.has(c.value));
+  const atLimit = activeProjects.length >= maxProjects;
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -49,7 +50,7 @@ export function SidebarProjects() {
   }, [creating]);
 
   const startCreating = () => {
-    setSelectedColour(availableColours[0]?.value ?? theme.projectColors[0].value);
+    setSelectedColour(theme.projectColors[0].value);
     setCreating(true);
   };
 
@@ -116,24 +117,15 @@ export function SidebarProjects() {
               if (e.key === 'Escape') { setCreating(false); setNewName(''); }
             }}
             placeholder="Project name"
-            className="font-ui w-full px-2 py-1 text-[13.5px] bg-sidebar-accent/50 border border-border rounded-md outline-none focus:border-accent placeholder:text-sidebar-muted"
+            className="font-ui w-full px-2 py-1 text-[13.5px] bg-sidebar text-sidebar-foreground border border-border rounded-md outline-none focus:border-accent placeholder:text-sidebar-muted"
             maxLength={40}
           />
-          {/* Colour dots — only show unused colours */}
-          <div className="flex items-center gap-1.5 mt-1.5 mb-1">
-            {availableColours.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => setSelectedColour(c.value)}
-                className={`w-5 h-5 rounded-full transition-all ${
-                  selectedColour === c.value
-                    ? 'ring-2 ring-offset-1 ring-offset-sidebar ring-accent scale-110'
-                    : 'hover:scale-110'
-                }`}
-                style={{ backgroundColor: c.value }}
-                aria-label={c.name}
-              />
-            ))}
+          <div className="mt-1.5 mb-1">
+            <ColourPicker
+              value={selectedColour}
+              onChange={setSelectedColour}
+              compact
+            />
           </div>
         </div>
       )}

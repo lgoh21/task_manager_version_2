@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { smoothTransition } from '@/config/animations';
-import { theme } from '@/config/theme';
+import { ColourPicker } from '@/components/ui/ColourPicker';
 import type { Project } from '@/types';
 
 interface ProjectEditModalProps {
@@ -78,20 +78,8 @@ export function ProjectEditModal({ project, onClose, onSave }: ProjectEditModalP
                 className="w-full text-sm font-ui bg-muted border border-border rounded-lg px-3 py-2 outline-none focus:border-accent/50 placeholder:text-muted-foreground/50 transition-colors"
                 maxLength={40}
               />
-              <div className="flex items-center gap-2 mt-3">
-                {theme.projectColors.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => setColour(c.value)}
-                    className={`w-6 h-6 rounded-full transition-all ${
-                      colour === c.value
-                        ? 'ring-2 ring-offset-2 ring-offset-card ring-accent scale-110'
-                        : 'hover:scale-110'
-                    }`}
-                    style={{ backgroundColor: c.value }}
-                    aria-label={c.name}
-                  />
-                ))}
+              <div className="mt-3">
+                <ColourPicker value={colour} onChange={setColour} />
               </div>
             </div>
             <div className="px-5 py-3 flex items-center justify-end gap-2">

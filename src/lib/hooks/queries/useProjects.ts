@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { queryKeys } from './queryKeys';
 import * as api from '@/lib/api/projects';
 import { getCachedUserId } from '@/lib/api/auth';
-import type { Project } from '@/types';
+import type { Project, UserSettings } from '@/types';
 import { MAX_PROJECTS } from '@/config/constants';
 
 // ---- QUERIES ----
@@ -39,9 +39,11 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: ({ name, colour }: { name: string; colour: string }) => {
       const current = queryClient.getQueryData<Project[]>(queryKeys.projects.all) ?? [];
+      const settings = queryClient.getQueryData<UserSettings>(queryKeys.settings.all);
+      const limit = settings?.max_projects ?? MAX_PROJECTS;
       const activeCount = current.filter((p) => !p.archived).length;
-      if (activeCount >= MAX_PROJECTS) {
-        return Promise.reject(new Error(`Maximum ${MAX_PROJECTS} active projects allowed`));
+      if (activeCount >= limit) {
+        return Promise.reject(new Error(`Maximum ${limit} active projects allowed`));
       }
       return api.createProject(name, colour, userId);
     },

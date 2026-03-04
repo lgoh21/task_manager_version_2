@@ -43,7 +43,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('light');
   const [userEmail, setUserEmailState] = useState<string | null>(null);
 
-  // Sync theme with DOM and localStorage
+  // Sync theme with localStorage
   useEffect(() => {
     const stored = localStorage.getItem('tempus-theme') as ThemeMode | null;
     if (stored === 'dark' || stored === 'light') {
