@@ -14,11 +14,16 @@ export function ContentArea({ children }: { children: React.ReactNode }) {
   const prevPathname = useRef(pathname);
   const showDetailPanel = !FULL_WIDTH_ROUTES.some((r) => pathname.startsWith(r));
 
-  // Clear task selection when navigating between routes
+  // Clear detail panel selection when navigating between routes
+  // Preserve activeProjectFilter so notes page can show filtered notes
   useEffect(() => {
     if (prevPathname.current !== pathname) {
       selectTask(null);
-      selectProject(null);
+      // Only clear project selection when navigating to a route with a detail panel
+      // On full-width routes (notes, history, settings) the panel isn't shown anyway,
+      // and we want the project filter to persist for notes page filtering
+      const isFullWidth = FULL_WIDTH_ROUTES.some((r) => pathname.startsWith(r));
+      if (!isFullWidth) selectProject(null);
       prevPathname.current = pathname;
     }
   }, [pathname, selectTask, selectProject]);

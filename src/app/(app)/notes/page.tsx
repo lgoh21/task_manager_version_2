@@ -4,10 +4,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote, useConvertNoteToTask } from '@/lib/hooks/queries/useNotes';
+import { useNotes, useCreateNote, useUpdateNote, useDeleteNote, useConvertNoteToTask, useUpdateNoteProject } from '@/lib/hooks/queries/useNotes';
+import { useProjects } from '@/lib/hooks/queries/useProjects';
+import { useAppStore } from '@/lib/hooks/useAppStore';
 import { useToast } from '@/components/ui/Toast';
 import { formatTimestamp } from '@/lib/utils/dates';
-import { IconTrash, IconArrowUp } from '@/components/ui/Icons';
+import { IconTrash, IconArrowUp, IconX } from '@/components/ui/Icons';
 
 // Soft tints that rotate across cards for a sticky-note feel — warm palette
 const NOTE_TINTS = [
@@ -20,10 +22,13 @@ const NOTE_TINTS = [
 
 export default function NotesPage() {
   const { data: notes = [] } = useNotes();
+  const { data: projects = [] } = useProjects();
+  const { activeProjectFilter, setActiveProjectFilter } = useAppStore();
   const createNote = useCreateNote();
   const updateNoteMutation = useUpdateNote();
   const deleteNoteMutation = useDeleteNote();
   const convertNote = useConvertNoteToTask();
+  const updateNoteProject = useUpdateNoteProject();
   const { showToast } = useToast();
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,17 +36,22 @@ export default function NotesPage() {
   const [editDraft, setEditDraft] = useState('');
   const editRef = useRef<HTMLTextAreaElement>(null);
 
-  const sortedNotes = notes;
+  const activeProjects = projects.filter((p) => !p.archived);
+  const filterProject = activeProjects.find((p) => p.id === activeProjectFilter) ?? null;
+
+  const sortedNotes = activeProjectFilter
+    ? notes.filter((n) => n.project_id === activeProjectFilter)
+    : notes;
 
   const handleSave = useCallback(() => {
     const content = draft.trim();
     if (!content) return;
-    createNote.mutate({ content });
+    createNote.mutate({ content, projectId: activeProjectFilter });
     setDraft('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [draft, createNote]);
+  }, [draft, createNote, activeProjectFilter]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -115,6 +125,25 @@ export default function NotesPage() {
           Brain dump, ideas, meeting notes
         </p>
       </div>
+
+      {/* Project filter banner */}
+      {filterProject && (
+        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border text-sm font-ui">
+          <span
+            className="w-2.5 h-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: filterProject.colour }}
+          />
+          <span className="text-muted-foreground">Showing notes for</span>
+          <span className="font-medium">{filterProject.name}</span>
+          <button
+            onClick={() => setActiveProjectFilter(null)}
+            className="ml-auto p-0.5 rounded hover:bg-border transition-colors text-muted-foreground hover:text-foreground"
+            title="Clear filter"
+          >
+            <IconX size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Input area */}
       <div className="mt-4 border border-border rounded-lg overflow-hidden">
@@ -208,11 +237,16 @@ export default function NotesPage() {
                         </ReactMarkdown>
                       </div>
 
-                      {/* Footer: timestamp + hover actions */}
+                      {/* Footer: timestamp + project + hover actions */}
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-current/5">
                         <span className="text-[11px] font-mono text-muted-foreground">
                           {formatTimestamp(note.created_at)}
                         </span>
+                        <NoteProjectPicker
+                          projectId={note.project_id}
+                          projects={activeProjects}
+                          onUpdate={(projectId) => updateNoteProject.mutate({ id: note.id, projectId })}
+                        />
                         <div className="flex-1" />
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
@@ -241,6 +275,76 @@ export default function NotesPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Inline project picker for a note card */
+function NoteProjectPicker({
+  projectId,
+  projects,
+  onUpdate,
+}: {
+  projectId: string | null;
+  projects: { id: string; name: string; colour: string }[];
+  onUpdate: (projectId: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const project = projects.find((p) => p.id === projectId) ?? null;
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      {project ? (
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-1 text-[11px] font-ui text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: project.colour }} />
+          {project.name}
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(!open)}
+          className="text-[11px] font-ui text-muted-foreground/50 hover:text-muted-foreground transition-colors opacity-0 group-hover:opacity-100"
+        >
+          + Project
+        </button>
+      )}
+
+      {open && (
+        <div className="absolute left-0 bottom-full mb-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[160px] z-10 font-ui">
+          {project && (
+            <button
+              onClick={() => { onUpdate(null); setOpen(false); }}
+              className="w-full text-left px-3 py-1.5 text-[11px] text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Remove project
+            </button>
+          )}
+          {projects
+            .filter((p) => p.id !== projectId)
+            .map((p) => (
+              <button
+                key={p.id}
+                onClick={() => { onUpdate(p.id); setOpen(false); }}
+                className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-muted transition-colors flex items-center gap-2"
+              >
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.colour }} />
+                {p.name}
+              </button>
+            ))}
+        </div>
+      )}
     </div>
   );
 }

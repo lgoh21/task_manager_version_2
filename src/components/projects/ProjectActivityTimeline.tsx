@@ -25,25 +25,35 @@ export function ProjectActivityTimeline({ activity }: ProjectActivityTimelinePro
   return (
     <div className="px-7 pb-6">
       <h3 className="section-label mb-3">Recent Activity</h3>
-      <div className="space-y-2.5">
-        {activity.map((entry) => {
-          const config = activityConfig[entry.type];
-          const Icon = config.icon;
-          return (
-            <div key={entry.id} className="flex items-start gap-2.5">
-              <Icon size={15} className={`${config.colorClass} shrink-0 mt-0.5`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-ui leading-snug">
-                  <span className="text-muted-foreground">{config.label}:</span>{' '}
-                  <span className="text-foreground">{entry.taskTitle}</span>
-                </p>
-                <p className="text-xs font-mono text-muted-foreground/60 mt-0.5">
-                  {formatRelativeTime(entry.timestamp)}
-                </p>
+      <div className="relative">
+        {/* Vertical connecting line behind icons */}
+        <div
+          className="absolute left-[7px] top-2 bottom-2 w-px bg-border"
+          style={{ opacity: 0.35 }}
+          aria-hidden="true"
+        />
+        <div className="space-y-2.5">
+          {activity.map((entry) => {
+            const config = activityConfig[entry.type];
+            const Icon = config.icon;
+            return (
+              <div key={entry.id} className="flex items-start gap-2.5 relative">
+                <div className="shrink-0 mt-0.5 bg-muted rounded-full z-[1]">
+                  <Icon size={15} className={config.colorClass} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-ui leading-snug">
+                    <span className="text-muted-foreground">{config.label}:</span>{' '}
+                    <span className="text-foreground">{entry.taskTitle}</span>
+                  </p>
+                  <p className="text-xs font-mono text-muted-foreground/60 mt-0.5">
+                    {formatRelativeTime(entry.timestamp)}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
