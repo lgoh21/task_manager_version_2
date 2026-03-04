@@ -10,6 +10,7 @@ import { setCachedUserId } from '@/lib/api/auth';
 import { ProjectEditModal } from '@/components/tasks/ProjectEditModal';
 import { MoonPhaseIcon } from '@/components/ui/MoonPhaseIcon';
 import { IconArchive, IconRotateCcw } from '@/components/ui/Icons';
+import { useSettings, useUpdateSettings } from '@/lib/hooks/queries/useSettings';
 import {
   HEAVY_DAY,
   DECAY,
@@ -20,9 +21,13 @@ import {
 export default function SettingsPage() {
   const { theme: themeMode, toggleTheme, userEmail } = useAppStore();
   const { data: projects = [] } = useProjects();
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
   const updateProjectMutation = useUpdateProject();
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const maxProjects = settings?.max_projects ?? MAX_PROJECTS;
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -90,11 +95,21 @@ export default function SettingsPage() {
           description="Days on Today before the day count badge appears"
           value={`${CARRIED_FORWARD.SHOW_COUNT_AFTER_DAYS} days`}
         />
-        <SettingsRow
-          label="Max projects"
-          description="Maximum number of active projects"
-          value={String(MAX_PROJECTS)}
-        />
+        <div className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
+          <div className="flex-1">
+            <p className="text-sm font-ui font-medium">Max projects</p>
+            <p className="text-xs font-ui text-muted-foreground mt-0.5">Maximum number of active projects</p>
+          </div>
+          <select
+            value={maxProjects}
+            onChange={(e) => updateSettings.mutate({ max_projects: Number(e.target.value) })}
+            className="text-sm font-mono bg-muted border border-border rounded-md px-2 py-1 outline-none focus:border-accent/50 text-foreground transition-colors"
+          >
+            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
       </SettingsSection>
 
       {/* Projects */}

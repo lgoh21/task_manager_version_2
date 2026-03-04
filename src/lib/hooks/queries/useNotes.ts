@@ -26,15 +26,17 @@ export function useCreateNote() {
   const userId = getCachedUserId();
 
   return useMutation({
-    mutationFn: (content: string) => api.createNote(content, userId),
+    mutationFn: ({ content, projectId }: { content: string; projectId?: string | null }) =>
+      api.createNote(content, userId, projectId),
 
-    onMutate: async (content) => {
+    onMutate: async ({ content, projectId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.notes.all });
       const previous = queryClient.getQueryData<Note[]>(queryKeys.notes.all);
 
       const optimistic: Note = {
         id: crypto.randomUUID(),
         content,
+        project_id: projectId ?? null,
         user_id: userId,
         created_at: new Date().toISOString(),
       };
@@ -107,6 +109,36 @@ export function useDeleteNote() {
     },
 
     onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.notes.all, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all });
+    },
+  });
+}
+
+export function useUpdateNoteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, projectId }: { id: string; projectId: string | null }) =>
+      api.updateNoteProject(id, projectId),
+
+    onMutate: async ({ id, projectId }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.notes.all });
+      const previous = queryClient.getQueryData<Note[]>(queryKeys.notes.all);
+
+      queryClient.setQueryData<Note[]>(queryKeys.notes.all, (old = []) =>
+        old.map((n) => (n.id === id ? { ...n, project_id: projectId } : n))
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.notes.all, context.previous);
       }

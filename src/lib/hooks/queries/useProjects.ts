@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { queryKeys } from './queryKeys';
 import * as api from '@/lib/api/projects';
 import { getCachedUserId } from '@/lib/api/auth';
-import type { Project } from '@/types';
+import type { Project, UserSettings } from '@/types';
 import { MAX_PROJECTS } from '@/config/constants';
 
 // ---- QUERIES ----
@@ -39,9 +39,11 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: ({ name, colour }: { name: string; colour: string }) => {
       const current = queryClient.getQueryData<Project[]>(queryKeys.projects.all) ?? [];
+      const settings = queryClient.getQueryData<UserSettings>(queryKeys.settings.all);
+      const limit = settings?.max_projects ?? MAX_PROJECTS;
       const activeCount = current.filter((p) => !p.archived).length;
-      if (activeCount >= MAX_PROJECTS) {
-        return Promise.reject(new Error(`Maximum ${MAX_PROJECTS} active projects allowed`));
+      if (activeCount >= limit) {
+        return Promise.reject(new Error(`Maximum ${limit} active projects allowed`));
       }
       return api.createProject(name, colour, userId);
     },
@@ -55,6 +57,9 @@ export function useCreateProject() {
         name,
         colour,
         archived: false,
+        description: null,
+        status: 'active',
+        finished_at: null,
         user_id: userId,
         created_at: new Date().toISOString(),
       };
@@ -88,7 +93,7 @@ export function useUpdateProject() {
       updates,
     }: {
       id: string;
-      updates: Partial<Pick<Project, 'name' | 'colour' | 'archived'>>;
+      updates: Partial<Pick<Project, 'name' | 'colour' | 'archived' | 'description' | 'status' | 'finished_at'>>;
     }) => api.updateProject(id, updates),
 
     onMutate: async ({ id, updates }) => {
@@ -98,6 +103,66 @@ export function useUpdateProject() {
       queryClient.setQueryData<Project[]>(
         queryKeys.projects.all,
         (old = []) => old.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+    },
+  });
+}
+
+export function useFinishProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.finishProject(id),
+
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects.all });
+      const previous = queryClient.getQueryData<Project[]>(queryKeys.projects.all);
+
+      queryClient.setQueryData<Project[]>(
+        queryKeys.projects.all,
+        (old = []) => old.map((p) => (p.id === id ? { ...p, status: 'finished' as const, finished_at: new Date().toISOString() } : p))
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all, context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+    },
+  });
+}
+
+export function useArchiveProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.archiveProject(id),
+
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects.all });
+      const previous = queryClient.getQueryData<Project[]>(queryKeys.projects.all);
+
+      queryClient.setQueryData<Project[]>(
+        queryKeys.projects.all,
+        (old = []) => old.map((p) => (p.id === id ? { ...p, status: 'archived' as const, archived: true } : p))
       );
 
       return { previous };

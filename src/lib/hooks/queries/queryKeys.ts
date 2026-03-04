@@ -14,6 +14,7 @@ export const queryKeys = {
   },
   notes: {
     all: ['notes'] as const,
+    byProject: (projectId: string) => ['notes', 'project', projectId] as const,
   },
   tags: {
     all: ['tags'] as const,
@@ -21,6 +22,9 @@ export const queryKeys = {
   },
   taskTags: {
     all: ['taskTags'] as const,
+  },
+  settings: {
+    all: ['settings'] as const,
   },
   auth: {
     userId: ['auth', 'userId'] as const,

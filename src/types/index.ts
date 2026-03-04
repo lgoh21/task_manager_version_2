@@ -11,6 +11,8 @@ export type TaskStatus =
 
 export type TaskSize = 'S' | 'M' | 'L';
 
+export type ProjectStatus = 'active' | 'finished' | 'archived';
+
 // --- Database row types ---
 
 export interface Task {
@@ -43,6 +45,9 @@ export interface Project {
   name: string;
   colour: string;
   archived: boolean;
+  description: string | null;
+  status: ProjectStatus;
+  finished_at: string | null;
   user_id: string;
   created_at: string;
 }
@@ -61,6 +66,7 @@ export interface TaskTag {
 export interface Note {
   id: string;
   content: string;
+  project_id: string | null;
   user_id: string;
   created_at: string;
 }
@@ -115,14 +121,31 @@ export interface CreateProjectInput {
 /** For creating a note */
 export interface CreateNoteInput {
   content: string;
+  project_id?: string | null;
 }
 
 /** Decay stage for Someday tasks */
 export type DecayStage = 'fresh' | 'slight_fade' | 'noticeable' | 'prompt' | 'fully_decayed';
 
+export type ActivityType = 'completed' | 'added' | 'let_go';
+
+export interface ActivityEntry {
+  id: string;
+  type: ActivityType;
+  taskTitle: string;
+  timestamp: string;
+}
+
+/** User settings (one row per user in user_settings table) */
+export interface UserSettings {
+  user_id: string;
+  max_projects: number;
+}
+
 /** UI state for the app shell */
 export interface AppUIState {
   selectedTaskId: string | null;
+  selectedProjectId: string | null;
   sidebarCollapsed: boolean;
   activeProjectFilter: string | null;
 }

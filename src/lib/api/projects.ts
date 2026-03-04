@@ -31,12 +31,36 @@ export async function createProject(
 
 export async function updateProject(
   id: string,
-  updates: Partial<Pick<Project, 'name' | 'colour' | 'archived'>>
+  updates: Partial<Pick<Project, 'name' | 'colour' | 'archived' | 'description' | 'status' | 'finished_at'>>
 ): Promise<Project> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('projects')
     .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function finishProject(id: string): Promise<Project> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ status: 'finished', finished_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function archiveProject(id: string): Promise<Project> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ status: 'archived', archived: true })
     .eq('id', id)
     .select()
     .single();
